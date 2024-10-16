@@ -1,8 +1,8 @@
 {
-	"name": "lambda-vps",
+	"name": "blink-fe",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "vite dev --mode dev",
 		"build": "vite build --mode prod",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
