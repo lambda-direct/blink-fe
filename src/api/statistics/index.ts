@@ -1,8 +1,8 @@
 import axiosCfg from '../config';
 
 const API = {
-	CHART: 'chart',
-	LIVE: 'realtime'
+	CHART: 'resourceUsage/chart',
+	LIVE: 'resourceUsage/realtime'
 };
 
 interface StatisticsResponse {

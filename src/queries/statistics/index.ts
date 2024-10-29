@@ -9,7 +9,7 @@ export const useChartStatistics = (params: { interval?: Interval } = {}) => {
 		refetchInterval = 86400000;
 	}
 	return createQuery({
-		queryKey: ['all-projects', params],
+		queryKey: ['chart-data', params],
 		queryFn: async () => {
 			const response = await getChartStatistics(params);
 			const { chart, values } = response.data;

@@ -19,7 +19,7 @@
 <QueryClientProvider client={queryClient}>
 	<div class="app font-poppins min-h-screen text-neutral-50">
 		<Header />
-		<main class="mx-auto max-w-screen-lg">
+		<main>
 			<slot></slot>
 		</main>
 	</div>

@@ -20,8 +20,6 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Alert from '$lib/components/ui/alert';
 

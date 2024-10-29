@@ -318,7 +318,7 @@
 		gap: 10px;
 		padding: 4px;
 		border-radius: 4px;
-		background-color: #1f2937;
+		background-color: #211f2d;
 		color: #a3a3a3;
 		pointer-events: none;
 		text-align: left;
@@ -342,7 +342,7 @@
 		z-index: 2;
 		border-radius: 4px;
 		padding: 4px;
-		background-color: #1f2937;
+		background-color: #211f2d;
 		color: #a3a3a3;
 		pointer-events: none;
 		text-align: left;

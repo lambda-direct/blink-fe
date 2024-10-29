@@ -7,7 +7,7 @@
 	import { useChartStatistics } from '../../queries/statistics';
 	import { onMount } from 'svelte';
 	import formatBytes from './utils/formatBytes';
-	import ChartSkeleton from './components/ChartSkeleton.svelte';
+	import ChartSkeleton from '../../lib/components/Skeleton.svelte';
 
 	let currentPeriod = '1d' as Interval;
 	let cpuUsage = [] as number[];
@@ -64,7 +64,7 @@
 	});
 </script>
 
-<div class="flex flex-col rounded-md border border-slate-700 p-4">
+<div class="mx-auto mb-4 flex max-w-screen-lg flex-col rounded-md border p-4">
 	<div class="mb-5 flex justify-between">
 		<div>
 			<h3 class="mb-1 text-xl font-medium">Statistics</h3>
