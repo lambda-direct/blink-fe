@@ -12,13 +12,13 @@
 	import { XIcon } from 'lucide-svelte';
 	import TabNav from './components/TabNav.svelte';
 	import SettingsTab from './components/SettingsTab.svelte';
+	import VariablesTab from './components/VariablesTab.svelte';
 
 	let services: GetServicesResponse['services'] = [];
 	let service: GetServiceResponse | null = null;
 	let selectedServiceId: string | null = null;
 	let projectId = $page.params.id;
 	let activeTab: Tab = 'settings';
-
 
 	$: queryServices = useServices(projectId);
 	$: queryServiceDetails = selectedServiceId ? useService(projectId, selectedServiceId) : null;
@@ -94,6 +94,10 @@
 					{#if activeTab === 'settings'}
 						{#key service.service.id}
 							<SettingsTab {service} />
+						{/key}
+					{:else if activeTab === 'variables'}
+						{#key service.service.id}
+							<VariablesTab variables={service.environmentVariables} />
 						{/key}
 					{/if}
 				</TabNav>

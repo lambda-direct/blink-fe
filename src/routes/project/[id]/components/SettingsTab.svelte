@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Code, Network, Cloud } from 'lucide-svelte';
 	import CircleIcon from './CircleIcon.svelte';
-	export let service;
+	import type { GetServiceResponse } from '../../../../api/services';
+	export let service: GetServiceResponse;
 
 	const { imageName, commandWithArguments } = service.service;
 	const portMappings = service.portMappings;
@@ -18,32 +19,32 @@
 			<div class="h-fit min-h-14 rounded-lg border p-5">{imageName}</div>
 		</div>
 	</div>
-
-	<div class="flex flex-col gap-6">
-		<div class="flex items-center gap-6 text-neutral-400">
-			<CircleIcon icon={Network} />
-			<h2 class="text-xl font-medium">Networking</h2>
-		</div>
-		{#each portMappings as { protocol, hostAddress, hostPort, containerPort }}
-			<div class="ml-16 flex h-fit min-h-14 items-center gap-8 rounded-lg border p-5 text-sm">
-				<div>
-					<span class="mr-2 text-neutral-400">Protocol:</span>
-					<span>{protocol}</span>
-				</div>
-
-				<div>
-					<span class="mr-2 text-neutral-400">Host:</span>
-					<span>{hostAddress} ➔ {hostPort}</span>
-				</div>
-
-				<div>
-					<span class="mr-2 text-neutral-400">Container Port:</span>
-					<span>{containerPort}</span>
-				</div>
+	{#if portMappings.length}
+		<div class="flex flex-col gap-6">
+			<div class="flex items-center gap-6 text-neutral-400">
+				<CircleIcon icon={Network} />
+				<h2 class="text-xl font-medium">Networking</h2>
 			</div>
-		{/each}
-	</div>
+			{#each portMappings as { protocol, hostAddress, hostPort, containerPort }}
+				<div class="ml-16 flex h-fit min-h-14 items-center gap-8 rounded-lg border p-5 text-sm">
+					<div>
+						<span class="mr-2 text-neutral-400">Protocol:</span>
+						<span>{protocol}</span>
+					</div>
 
+					<div>
+						<span class="mr-2 text-neutral-400">Host:</span>
+						<span>{hostAddress} ➔ {hostPort}</span>
+					</div>
+
+					<div>
+						<span class="mr-2 text-neutral-400">Container Port:</span>
+						<span>{containerPort}</span>
+					</div>
+				</div>
+			{/each}
+		</div>
+	{/if}
 	<div class="flex flex-col gap-6">
 		<div class="flex items-center gap-6 text-neutral-400">
 			<CircleIcon icon={Cloud} />
@@ -56,7 +57,7 @@
 			</div>
 			{#if commandWithArguments}
 				<p class="text-neutral-400">Custom Start Command</p>
-				<div class="h-fit min-h-14 rounded-lg border p-5">{service.commandWithArguments}</div>
+				<div class="h-fit min-h-14 rounded-lg border p-5">{commandWithArguments}</div>
 			{/if}
 		</div>
 	</div>

@@ -2,7 +2,7 @@ import axiosCfg from '../config';
 
 const API = {
 	SERVICES: (projectId: string) => `projects/${projectId}/services`,
-	SERVICE: (projectId: string, serviceId: string) => `projects/${projectId}/service/${serviceId}`
+	SERVICE: (projectId: string, serviceId: string) => `projects/${projectId}/services/${serviceId}`
 };
 export interface GetServicesResponse {
 	services: {
