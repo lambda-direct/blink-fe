@@ -38,6 +38,15 @@
 			>
 				Statistics
 			</a>
+			<a
+				href="/logs"
+				class="relative h-10 px-4 py-2 text-sm font-medium transition-colors hover:text-white {currentPath ===
+				'/logs'
+					? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
+					: 'text-neutral-400'}"
+			>
+				Logs
+			</a>
 		</div>
 	</nav>
 </header>

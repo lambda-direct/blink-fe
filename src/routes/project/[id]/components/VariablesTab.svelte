@@ -1,52 +1,17 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
 	import type { GetServiceResponse } from '../../../../api/services';
-	import { Eye, EyeOff, Copy, Check, Asterisk } from 'lucide-svelte';
+	import { Eye, EyeOff, Copy, Check } from 'lucide-svelte';
 	export let variables: GetServiceResponse['environmentVariables'] = [];
 
 	type EnvironmentVariable = GetServiceResponse['environmentVariables'][0];
 
-	const mockedVariables = [
-		{
-			id: '1',
-			name: 'PORT',
-			value: '3000',
-			createdAt: 1730307600000
-		},
-		{
-			id: '2',
-			name: 'USER',
-			value: 'admin_user',
-			createdAt: 1730307600000
-		},
-		{
-			id: '3',
-			name: 'URL',
-			value: 'https://example.com',
-			createdAt: 1730307600000
-		},
-		{
-			id: '4',
-			name: 'PASSWORD',
-			value: 's3cur3P@sw0rd!',
-			createdAt: 1730307600000
-		},
-		{
-			id: '5',
-			name: 'HOST',
-			value: 'localhost',
-			createdAt: 1730307600000
-		}
-	];
-
-	const showValueMap = writable(
-		new Map<string, boolean>(mockedVariables.map((v) => [v.id, false]))
-	);
+	const showValueMap = writable(new Map<string, boolean>(variables.map((v) => [v.id, false])));
 	const copiedMap = writable(new Map<string, boolean>());
 
 	function toggleShowValue(id: string) {
 		showValueMap.update((currentMap) => {
-			mockedVariables.forEach((v) => {
+			variables.forEach((v) => {
 				if (v.id !== id) {
 					currentMap.set(v.id, false);
 				}
@@ -88,11 +53,10 @@
 
 <div class="flex flex-col gap-4">
 	<h2 class="text-xl font-medium text-neutral-400">
-		{mockedVariables.length} Environment
-		{mockedVariables.length === 1 ? 'Variable' : 'Variables'}
-		!MOCKED!
+		{variables.length} Environment
+		{variables.length === 1 ? 'Variable' : 'Variables'}
 	</h2>
-	{#each mockedVariables as { name, value, id }}
+	{#each variables as { name, value, id }}
 		<div class="group/item flex w-full gap-4">
 			<div
 				class="group-hover/item:bg-accent flex h-9 w-full items-center overflow-hidden rounded-lg border px-6 text-sm"
@@ -106,11 +70,7 @@
 					{#if $showValueMap.get(id)}
 						{value}
 					{:else}
-						<div class="flex">
-							{#each Array(8) as _}
-								<Asterisk class="h-4 w-4" />
-							{/each}
-						</div>
+						<span>*****</span>
 					{/if}
 				</div>
 				<div class="flex gap-1 text-neutral-400 opacity-0 group-hover/value:opacity-100">

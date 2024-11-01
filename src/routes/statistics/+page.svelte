@@ -29,8 +29,10 @@
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
-		currentPeriod = option.value as Interval;
-		isLoading = true;
+		if (option.value !== currentPeriod) {
+			currentPeriod = option.value as Interval;
+			isLoading = true;
+		}
 	}
 
 	function updateColumnWidth() {
@@ -64,7 +66,7 @@
 	});
 </script>
 
-<div class="mx-auto mb-4 flex max-w-screen-lg flex-col rounded-md border p-4">
+<div class="bg-card mx-auto mb-4 flex max-w-screen-lg flex-col rounded-md border p-6 pt-10">
 	<div class="mb-5 flex justify-between">
 		<div>
 			<h3 class="mb-1 text-xl font-medium">Statistics</h3>

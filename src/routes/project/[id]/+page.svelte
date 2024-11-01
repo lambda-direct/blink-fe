@@ -13,6 +13,7 @@
 	import TabNav from './components/TabNav.svelte';
 	import SettingsTab from './components/SettingsTab.svelte';
 	import VariablesTab from './components/VariablesTab.svelte';
+	import LogsTab from './components/LogsTab.svelte';
 
 	let services: GetServicesResponse['services'] = [];
 	let service: GetServiceResponse | null = null;
@@ -75,7 +76,7 @@
 	</div>
 	{#if selectedServiceId && service}
 		<div
-			class="bg-card absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden overflow-y-auto rounded-lg border transition-transform duration-300 ease-out lg:w-1/2"
+			class="bg-card absolute right-0 top-0 flex h-full min-h-[90vh] w-full flex-col overflow-hidden rounded-lg border transition-transform duration-300 ease-out lg:w-1/2"
 		>
 			<div class="flex flex-col">
 				<div class="mb-5 flex w-full items-center justify-between px-12 pt-12">
@@ -98,6 +99,10 @@
 					{:else if activeTab === 'variables'}
 						{#key service.service.id}
 							<VariablesTab variables={service.environmentVariables} />
+						{/key}
+					{:else if activeTab === 'logs'}
+						{#key service.service.id}
+							<LogsTab {projectId} serviceId={selectedServiceId}/>
 						{/key}
 					{/if}
 				</TabNav>

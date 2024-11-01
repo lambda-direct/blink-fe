@@ -269,7 +269,7 @@
 
 	{#if hoveredPoint}
 		<div
-			class="chart-container__tooltip"
+			class="chart-container__tooltip border"
 			style="top: {Y_OFFSET - 5}px; left: {hoveredPoint.tooltipData
 				.topPosition}px; visibility: hidden;"
 			bind:this={topTooltipEl}
@@ -294,7 +294,7 @@
 			</div>
 		</div>
 		<div
-			class="chart-container__bottom-tooltip"
+			class="chart-container__bottom-tooltip border"
 			style="top: {chartHeight + Y_OFFSET + 3}px; left: {hoveredPoint.tooltipData
 				.bottomPosition}px; visibility: hidden;"
 			bind:this={bottomTooltipEl}
