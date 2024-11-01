@@ -13,7 +13,7 @@
 	let currentPeriod = '1d' as Interval;
 	let isLoading: boolean = true;
 	let logs: LogsResponse['logs'] = '';
-	let parsedLogs: { message: string }[] = [];
+	let parsedLogs: { timestamp: Date | null; message: string }[] = [];
 
 	const periods = [
 		{ value: '1d', label: '24 Hour' },
@@ -35,7 +35,12 @@
 
 	$: if ($queryLogs?.data) {
 		logs = $queryLogs.data.logs;
-		parsedLogs = logs.split('\n').map((log) => ({ message: log }));
+		parsedLogs = logs.split('\n').map((log) => {
+			const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
+			return match
+				? { timestamp: new Date(match[1]), message: log }
+				: { timestamp: null, message: log };
+		});
 		isLoading = false;
 	}
 	$: validLogs =

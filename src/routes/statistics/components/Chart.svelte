@@ -3,12 +3,12 @@
 	import getTimeAgoString from '../utils/getTimeAgo';
 	import calculateIndices from '../utils/calculateIndices';
 	import calculateChartStep from '../utils/calculateChartStep';
-	import formatBytes from '../utils/formatBytes';
+	import { formatBytes, formatMilliseconds } from '../utils/formatData';
 
 	export let timestamps: number[];
 	export let data: number[];
 	export let chartWidth: number;
-	export let type: 'percent' | 'B' = 'B';
+	export let type: 'percent' | 'B' | 'ms' = 'B';
 	export let total: number = 0;
 
 	let chartHeight: number = 240;
@@ -25,7 +25,14 @@
 	let topTooltipEl: HTMLElement;
 	let bottomTooltipEl: HTMLElement;
 
-	let X_OFFSET = type === 'B' ? 55 : 40;
+	let X_OFFSET: number;
+	if (type === 'B') {
+		X_OFFSET = 55;
+	} else if (type === 'ms') {
+		X_OFFSET = 50;
+	} else {
+		X_OFFSET = 40;
+	}
 	const Y_OFFSET: number = 30;
 
 	const chartColors = {
@@ -142,9 +149,17 @@
 			values = data.map((value) => value * 100);
 			maxChartPoint = 100;
 			ySteps = [0, 25, 50, 75, 100];
-		} else {
+		} else if (type === 'B') {
 			values = data;
 			const { maxChartPoint: lineMaxChartPoint, step } = calculateChartStep(total);
+			maxChartPoint = lineMaxChartPoint;
+			for (let i = 0; i <= maxChartPoint; i += step) {
+				ySteps.push(i);
+			}
+		} else if (type === 'ms') {
+			values = data;
+			const maxValue = Math.max(...values);
+			const { maxChartPoint: lineMaxChartPoint, step } = calculateChartStep(maxValue);
 			maxChartPoint = lineMaxChartPoint;
 			for (let i = 0; i <= maxChartPoint; i += step) {
 				ySteps.push(i);
@@ -200,6 +215,8 @@
 						fill="#fff"
 						>{#if type === 'B'}
 							{formatBytes(step)}
+						{:else if type === 'ms'}
+							{formatMilliseconds(step)}
 						{:else}
 							{step.toString()}%
 						{/if}
@@ -287,6 +304,8 @@
 				<span class="chart-container__tooltip__data"
 					>{#if type === 'B'}
 						{formatBytes(hoveredPoint.tooltipData.value)}
+					{:else if type === 'ms'}
+						{formatMilliseconds(hoveredPoint.tooltipData.value, 2)}
 					{:else}
 						{hoveredPoint.tooltipData.value.toFixed(2)}%
 					{/if}</span

@@ -6,7 +6,7 @@
 	import type { Interval } from '../../api/statistics';
 	import { useChartStatistics } from '../../queries/statistics';
 	import { onMount } from 'svelte';
-	import formatBytes from './utils/formatBytes';
+	import {formatBytes} from './utils/formatData';
 	import ChartSkeleton from '../../lib/components/Skeleton.svelte';
 
 	let currentPeriod = '1d' as Interval;

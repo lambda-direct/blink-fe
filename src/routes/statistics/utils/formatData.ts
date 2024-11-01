@@ -1,9 +1,9 @@
-export default (sizeInBytes: number): string => {
+export function formatBytes(sizeInBytes: number): string {
 	const formatNumber = (number: number): string => {
 		if (number % 1 === 0) {
-			return number.toFixed(0); 
+			return number.toFixed(0);
 		}
-		return number.toFixed(2); 
+		return number.toFixed(2);
 	};
 
 	if (sizeInBytes >= 1000 * 1000 * 1000 * 1000) {
@@ -17,4 +17,13 @@ export default (sizeInBytes: number): string => {
 	} else {
 		return sizeInBytes + ' B';
 	}
-};
+}
+
+export function formatMilliseconds(ms: number, decimal: number = 0): string {
+	const seconds = Math.floor(ms / 1000);
+	if (seconds < 1) {
+		return `${ms.toFixed(decimal)} ms`;
+	}
+
+	return `${seconds.toFixed(decimal)} s`;
+}

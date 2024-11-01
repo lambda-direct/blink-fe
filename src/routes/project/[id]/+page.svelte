@@ -14,6 +14,7 @@
 	import SettingsTab from './components/SettingsTab.svelte';
 	import VariablesTab from './components/VariablesTab.svelte';
 	import LogsTab from './components/LogsTab.svelte';
+	import MetricsTab from './components/MetricsTab.svelte';
 
 	let services: GetServicesResponse['services'] = [];
 	let service: GetServiceResponse | null = null;
@@ -100,9 +101,13 @@
 						{#key service.service.id}
 							<VariablesTab variables={service.environmentVariables} />
 						{/key}
+					{:else if activeTab === 'metrics'}
+						{#key service.service.id}
+							<MetricsTab {projectId} serviceId={selectedServiceId} />
+						{/key}
 					{:else if activeTab === 'logs'}
 						{#key service.service.id}
-							<LogsTab {projectId} serviceId={selectedServiceId}/>
+							<LogsTab {projectId} serviceId={selectedServiceId} />
 						{/key}
 					{/if}
 				</TabNav>
