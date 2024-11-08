@@ -61,7 +61,16 @@ const config: Config = {
 			}
 		}
 	},
-	plugins: [scrollbarPlugin]
+	plugins: [
+		scrollbarPlugin,
+		function ({ addBase }) {
+			addBase({
+				html: {
+					'@apply scrollbar scrollbar-track-card scrollbar-thumb-[#33323e]': {}
+				}
+			});
+		}
+	]
 };
 
 export default config;

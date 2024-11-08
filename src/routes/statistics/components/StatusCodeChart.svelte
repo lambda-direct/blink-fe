@@ -3,25 +3,31 @@
 	import getTimeAgoString from '../utils/getTimeAgo';
 	import calculateIndices from '../utils/calculateIndices';
 	import calculateChartStep from '../utils/calculateChartStep';
-	import { formatBytes, formatMilliseconds } from '../utils/formatData';
+	import { addCommas, formatNumber } from '../utils/formatData';
 	import type { Interval } from '../../../api/statistics';
+	import type { ChartColors } from '../../project/[id]/+page.svelte';
 
 	export let timestamps: number[];
-	export let data: number[];
+	export let statusCodeCounts: { [statusCode: string]: number }[] = [];
 	export let chartWidth: number;
-	export let type: 'percent' | 'B' | 'ms' = 'B';
-	export let total: number = 0;
 	export let interval: Interval = '1h';
+	export let colorsMap: ChartColors = {};
 
 	let chartHeight: number = 240;
 	let maxChartPoint: number;
-	let values: number[] = [];
+	let statusCodeValues: { [key: string]: number[] } = {};
 	let labelIndices: number[];
 	let ySteps: number[] = [];
 	let xSteps: number[] = [];
+
 	let hoveredPoint: {
 		x: number;
-		tooltipData: { value: number; timestamp: number; topPosition: number; bottomPosition: number };
+		tooltipData: {
+			values: { code: string; count: number }[];
+			timestamp: number;
+			topPosition: number;
+			bottomPosition: number;
+		};
 	} | null = null;
 
 	let topTooltipEl: HTMLElement;
@@ -29,10 +35,6 @@
 
 	let X_OFFSET: number = 55;
 	const Y_OFFSET: number = 30;
-
-	const chartColors = {
-		default: '#853bce'
-	};
 
 	function generatePoints(values: number[]) {
 		let startX = X_OFFSET;
@@ -93,12 +95,18 @@
 			const pointX = xSteps[i];
 			if (mouseX >= pointX - range && mouseX < pointX + range) {
 				const { topTooltipX, bottomTooltipX } = getTooltipPosition(pointX);
+				const tooltipValues = Object.keys(statusCodeValues).map((code) => ({
+					code,
+					count: statusCodeValues[code][i] || 0
+				}));
+
 				const tooltipData = {
-					value: values[i],
 					timestamp: timestamps[i],
 					topPosition: topTooltipX,
-					bottomPosition: bottomTooltipX
+					bottomPosition: bottomTooltipX,
+					values: tooltipValues
 				};
+
 				newHoveredPoint = { x: pointX, tooltipData };
 				break;
 			}
@@ -140,29 +148,26 @@
 	}
 
 	function initializeValues() {
-		if (type === 'percent') {
-			values = data.map((value) => value * 100);
-			maxChartPoint = 100;
-			ySteps = [0, 25, 50, 75, 100];
-		} else if (type === 'B') {
-			values = data;
-			const { maxChartPoint: lineMaxChartPoint, step } = calculateChartStep(total);
-			maxChartPoint = lineMaxChartPoint;
-			for (let i = 0; i <= maxChartPoint; i += step) {
-				ySteps.push(i);
-			}
-		} else if (type === 'ms') {
-			values = data;
-			const maxValue = Math.max(...values);
-			const { maxChartPoint: lineMaxChartPoint, step } = calculateChartStep(maxValue);
-			maxChartPoint = lineMaxChartPoint;
-			for (let i = 0; i <= maxChartPoint; i += step) {
-				ySteps.push(i);
-			}
+		const realMax = Math.max(...Object.values(statusCodeValues).flat());
+		const { maxChartPoint: lineMaxChartPoint, step } = calculateChartStep(realMax);
+		maxChartPoint = lineMaxChartPoint;
+		ySteps = [];
+		for (let i = 0; i <= maxChartPoint; i += step) {
+			ySteps.push(i);
 		}
 	}
 
 	$: {
+		statusCodeValues = (() => {
+			const statusCodes = Object.keys(statusCodeCounts[0]);
+			const updatedStatusCodeValues: { [key: string]: number[] } = {};
+
+			statusCodes.forEach((code) => {
+				updatedStatusCodeValues[code] = statusCodeCounts.map((entry) => entry[code] || 0);
+			});
+
+			return updatedStatusCodeValues;
+		})();
 		initializeValues();
 		labelIndices = calculateIndices(interval, chartWidth, timestamps.length);
 	}
@@ -208,13 +213,8 @@
 						font-size={12}
 						text-anchor="end"
 						fill="#fff"
-						>{#if type === 'B'}
-							{formatBytes(step)}
-						{:else if type === 'ms'}
-							{formatMilliseconds(step)}
-						{:else}
-							{step.toString()}%
-						{/if}
+					>
+						{formatNumber(step)}
 					</text>
 				{/if}
 			{/each}
@@ -242,39 +242,51 @@
 					{/if}
 				</text>
 			{/each}
-			<defs>
-				<linearGradient id={`gradientFill`} x1="0%" y1="0%" x2="0%" y2="100%">
-					<stop offset="0%" stop-color={chartColors.default} stop-opacity="0.25" />
-					<stop offset="100%" stop-color={chartColors.default} stop-opacity="0" />
-				</linearGradient>
-			</defs>
-			<polygon points={generateFillPoints(values)} fill="url(#gradientFill)" stroke="transparent" />
-
-			<polyline
-				fill="none"
-				stroke={chartColors.default}
-				stroke-width={2}
-				points={generatePoints(values)}
-			/>
-			{#each getDotsPoints(values) as { x, y }}
-				{#if hoveredPoint && Math.round(x) === Math.round(hoveredPoint?.x)}
-					<line
-						x1={hoveredPoint.x}
-						y1={0 - 5}
-						x2={hoveredPoint.x}
-						y2={chartHeight}
-						stroke={chartColors.default}
-						stroke-width="1"
+			{#if hoveredPoint}
+				<line
+					x1={hoveredPoint.x}
+					y1={0 - 5}
+					x2={hoveredPoint.x}
+					y2={chartHeight}
+					stroke={Object.keys(statusCodeValues).length === 1
+						? colorsMap[Object.keys(statusCodeValues)[0]]
+						: '#a3a3a3'}
+					stroke-width="1"
+				/>
+			{/if}
+			{#each Object.keys(statusCodeValues) as statusCode}
+				<defs>
+					<linearGradient id={`gradientFill-${statusCode}`} x1="0%" y1="0%" x2="0%" y2="100%">
+						<stop offset="0%" stop-color={colorsMap[statusCode]} stop-opacity="0.25" />
+						<stop offset="100%" stop-color={colorsMap[statusCode]} stop-opacity="0" />
+					</linearGradient>
+				</defs>
+				<polyline
+					fill="none"
+					stroke={colorsMap[statusCode]}
+					stroke-width={2}
+					points={generatePoints(statusCodeValues[statusCode])}
+				/>
+				{#if Object.keys(statusCodeValues).length === 1}
+					<polygon
+						points={generateFillPoints(statusCodeValues[statusCode])}
+						fill={`url(#gradientFill-${statusCode})`}
+						stroke="transparent"
 					/>
-					<circle
-						cx={x}
-						cy={y}
-						r={3}
-						fill="black"
-						stroke={chartColors.default}
-						stroke-width="2"
-						class="svg-circle"
-					/>{/if}
+				{/if}
+				{#each getDotsPoints(statusCodeValues[statusCode]) as { x, y }}
+					{#if hoveredPoint && Math.round(x) === Math.round(hoveredPoint?.x)}
+						<circle
+							cx={x}
+							cy={y}
+							r={3}
+							fill="black"
+							stroke={colorsMap[statusCode]}
+							stroke-width="2"
+							class="svg-circle"
+						/>
+					{/if}
+				{/each}
 			{/each}
 		</g>
 	</svg>
@@ -292,15 +304,16 @@
 						{format(new Date(hoveredPoint.tooltipData.timestamp), 'EEE d MMM, HH:mm:ss')}
 					{/if}
 				</span>
-				<span class="chart-container__tooltip__data"
-					>{#if type === 'B'}
-						{formatBytes(hoveredPoint.tooltipData.value)}
-					{:else if type === 'ms'}
-						{formatMilliseconds(hoveredPoint.tooltipData.value, 2)}
+				<div class="chart-container__tooltip__data">
+					{#if Object.keys(statusCodeValues).length !== 1}
+						<span>Total:</span>
+						{formatNumber(
+							hoveredPoint.tooltipData.values.reduce((total, { count }) => total + count, 0)
+						)}
 					{:else}
-						{hoveredPoint.tooltipData.value.toFixed(2)}%
-					{/if}</span
-				>
+						{formatNumber(hoveredPoint.tooltipData.values[0].count)}
+					{/if}
+				</div>
 			</div>
 		</div>
 		<div
@@ -326,7 +339,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
-		padding: 4px;
+		padding: 4px 9px;
 		border-radius: 4px;
 		background-color: #211f2d;
 		color: #a3a3a3;

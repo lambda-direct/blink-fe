@@ -20,10 +20,24 @@ export function formatBytes(sizeInBytes: number): string {
 }
 
 export function formatMilliseconds(ms: number, decimal: number = 0): string {
-	const seconds = Math.floor(ms / 1000);
+	const seconds = ms / 1000;
 	if (seconds < 1) {
 		return `${ms.toFixed(decimal)} ms`;
 	}
 
-	return `${seconds.toFixed(decimal)} s`;
+	return `${seconds.toFixed(2)} s`;
+}
+export function addCommas(number: number): string {
+	return new Intl.NumberFormat('en-US', {
+		style: 'decimal'
+	}).format(number);
+}
+
+export function formatNumber(num: number): string {
+	if (num >= 1_000_000) {
+		return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+	} else if (num >= 1_000) {
+		return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+	}
+	return num.toString();
 }

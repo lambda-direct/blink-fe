@@ -1,11 +1,14 @@
 <script lang="ts">
-	import { Code, Network, Cloud } from 'lucide-svelte';
+	import { Code, Network, Cloud, Globe } from 'lucide-svelte';
 	import CircleIcon from './CircleIcon.svelte';
 	import type { GetServiceResponse } from '../../../../api/services';
 	export let service: GetServiceResponse;
 
-	const { imageName, commandWithArguments } = service.service;
-	const portMappings = service.portMappings;
+	const {
+		service: { imageName, commandWithArguments },
+		portMappings,
+		domains
+	} = service;
 </script>
 
 <div class="flex flex-col gap-10">
@@ -19,12 +22,28 @@
 			<div class="h-fit min-h-14 rounded-lg border p-5">{imageName}</div>
 		</div>
 	</div>
-	{#if portMappings.length}
+	{#if portMappings.length || domains.length}
 		<div class="flex flex-col gap-6">
 			<div class="flex items-center gap-6 text-neutral-400">
 				<CircleIcon icon={Network} />
 				<h2 class="text-xl font-medium">Networking</h2>
 			</div>
+			{#each domains as { name, isTlsEnabled }}<div
+					class="ml-16 flex h-fit min-h-14 items-center gap-8 rounded-lg border p-5 text-sm"
+				>
+					<div class="flex flex-row items-center gap-2 text-neutral-400">
+						<Globe class="h-4 w-4" />
+						<span>Domain:</span>
+						<span class="text-white">{name}</span>
+					</div>
+					{#if isTlsEnabled !== undefined}
+						<div>
+							<span class="mr-2 text-neutral-400">TLS:</span>
+							<span>{isTlsEnabled ? 'Enabled' : 'Disabled'}</span>
+						</div>
+					{/if}
+				</div>
+			{/each}
 			{#each portMappings as { protocol, hostAddress, hostPort, containerPort }}
 				<div class="ml-16 flex h-fit min-h-14 items-center gap-8 rounded-lg border p-5 text-sm">
 					<div>

@@ -37,6 +37,18 @@ export interface GetServiceResponse {
 		value: string;
 		createdAt: number;
 	}[];
+	bindMounts: {
+		id: string;
+		sourcePath: string;
+		destinationPath: string;
+		createdAt: number;
+	}[];
+	domains: {
+		id: string;
+		name: string;
+		isTlsEnabled: boolean;
+		createdAt: number;
+	}[];
 }
 
 function getServices(projectId: string) {

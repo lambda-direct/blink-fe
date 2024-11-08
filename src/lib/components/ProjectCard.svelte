@@ -19,7 +19,7 @@
 >
 	<h5 class="w-72 overflow-hidden text-ellipsis text-nowrap text-left">{project.name}</h5>
 	<div class="flex w-full items-center justify-between text-sm text-neutral-400">
-		<span>Created {getTimeAgo(project.createdAt, false)}</span>
+		<span>Created {getTimeAgo(project.createdAt)}</span>
 		<span>
 			{servicesCount}
 			{servicesCount === 1 ? 'service' : 'services'}</span

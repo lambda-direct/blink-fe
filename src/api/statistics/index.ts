@@ -43,7 +43,7 @@ interface ServiceHttpStatsResponse {
 	}[];
 }
 
-export type Interval = '1d' | '7d' | '14d' | '30d';
+export type Interval = '1h' | '1d' | '7d' | '30d';
 
 function getChartStatistics(params: { interval?: Interval } = {}) {
 	return axiosCfg.get<StatisticsResponse>(API.CHART, { params });

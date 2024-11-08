@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
-	export type Tab = 'settings' | 'metrics' | 'variables' | 'logs';
+	export type Tab = 'settings' | 'metrics' | 'variables' | 'logs' | 'mounts';
+	export type ChartColors = { [statusCode: string]: string };
 </script>
 
 <script lang="ts">
@@ -15,15 +16,19 @@
 	import VariablesTab from './components/VariablesTab.svelte';
 	import LogsTab from './components/LogsTab.svelte';
 	import MetricsTab from './components/MetricsTab.svelte';
+	import MountTab from './components/MountsTab.svelte';
+	import MountsTab from './components/MountsTab.svelte';
 
 	let services: GetServicesResponse['services'] = [];
 	let service: GetServiceResponse | null = null;
 	let selectedServiceId: string | null = null;
+	let selectedMountId: string | null = null;
 	let projectId = $page.params.id;
 	let activeTab: Tab = 'settings';
 
 	$: queryServices = useServices(projectId);
 	$: queryServiceDetails = selectedServiceId ? useService(projectId, selectedServiceId) : null;
+	$: activeTab = selectedMountId ? 'mounts' : 'settings';
 
 	$: {
 		if ($queryServiceDetails?.data) {
@@ -52,12 +57,15 @@
 		activeTab = tab;
 	}
 
-	function openServiceDetails(serviceId: string) {
+	function openServiceDetails(serviceId: string, mountId: string | null = null) {
 		selectedServiceId = serviceId;
+		selectedMountId = mountId;
+		activeTab = mountId ? 'mounts' : 'settings';
 	}
 
 	function closeServiceDetails() {
 		selectedServiceId = null;
+		selectedMountId = null;
 	}
 </script>
 
@@ -69,8 +77,9 @@
 	>
 		{#each services as service}
 			<ServiceCard
-				{service}
-				onClick={() => openServiceDetails(service.id)}
+				{projectId}
+				serviceId={service.id}
+				onClick={(serviceId, mountId) => openServiceDetails(serviceId, mountId)}
 				selected={service.id === selectedServiceId}
 			/>
 		{/each}
@@ -81,8 +90,8 @@
 		>
 			<div class="flex flex-col">
 				<div class="mb-5 flex w-full items-center justify-between px-12 pt-12">
-					<span class="overflow-hidden text-ellipsis text-nowrap text-3xl"
-						>{service.service.name}</span
+					<span class="overflow-hidden text-ellipsis text-nowrap text-3xl">
+						{service.service.name}</span
 					>
 					<button
 						class="hover:bg-accent cursor-pointer rounded-lg"
@@ -92,25 +101,35 @@
 						<XIcon class="m-2 h-5 w-5" />
 					</button>
 				</div>
-				<TabNav {activeTab} onTabSelect={handleTabSelect}>
-					{#if activeTab === 'settings'}
-						{#key service.service.id}
-							<SettingsTab {service} />
-						{/key}
-					{:else if activeTab === 'variables'}
-						{#key service.service.id}
-							<VariablesTab variables={service.environmentVariables} />
-						{/key}
-					{:else if activeTab === 'metrics'}
-						{#key service.service.id}
-							<MetricsTab {projectId} serviceId={selectedServiceId} />
-						{/key}
-					{:else if activeTab === 'logs'}
-						{#key service.service.id}
-							<LogsTab {projectId} serviceId={selectedServiceId} />
-						{/key}
-					{/if}
-				</TabNav>
+				{#if selectedServiceId}
+					<TabNav
+						{activeTab}
+						onTabSelect={handleTabSelect}
+						hasMounts={service.bindMounts && service.bindMounts.length > 0}
+					>
+						{#if activeTab === 'settings'}
+							{#key service.service.id}
+								<SettingsTab {service} />
+							{/key}
+						{:else if activeTab === 'variables'}
+							{#key service.service.id}
+								<VariablesTab variables={service.environmentVariables} />
+							{/key}
+						{:else if activeTab === 'metrics'}
+							{#key service.service.id}
+								<MetricsTab {projectId} serviceId={selectedServiceId} />
+							{/key}
+						{:else if activeTab === 'logs'}
+							{#key service.service.id}
+								<LogsTab {projectId} serviceId={selectedServiceId} />
+							{/key}
+						{:else if activeTab === 'mounts'}
+							{#key service.service.id}
+								<MountsTab mounts={service.bindMounts} />
+							{/key}
+						{/if}
+					</TabNav>
+				{/if}
 			</div>
 		</div>
 	{/if}

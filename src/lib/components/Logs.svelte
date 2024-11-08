@@ -10,6 +10,7 @@
 	import { tick } from 'svelte';
 
 	export let parsedLogs: { timestamp: Date | null; message: string }[] = [];
+	export let type: 'general' | 'service';
 
 	let hoveredLogIndex = -1;
 	let scrollContainer: HTMLDivElement | null = null;
@@ -65,9 +66,9 @@
 	<div class="flex w-full flex-col">
 		<div class="mb-1 flex rounded-t-lg bg-[#33323e] px-2 py-1">
 			{#if showDateColumn}
-				<div class="mr-4 w-1/6 p-2">Date ({getTimezone()})</div>
+				<div class="mr-4 {type === 'general' ? 'w-1/6' : 'w-1/5'} p-2">Date ({getTimezone()})</div>
 			{/if}
-			<div class="w-5/6 p-2">Message</div>
+			<div class="{type === 'general' ? 'w-5/6' : 'w-4/5'} p-2">Message</div>
 		</div>
 		<div
 			class="bg-accent scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] flex h-full max-h-[50vh] w-full flex-col overflow-y-auto overflow-x-hidden rounded-b-lg px-2 pb-2"
@@ -83,7 +84,7 @@
 					role="listitem"
 				>
 					{#if showDateColumn}
-						<div class="mr-4 w-1/6 whitespace-normal break-words p-2 text-left text-neutral-400">
+						<div class="mr-4 {type === 'general' ? 'w-1/6' : 'w-1/5'} whitespace-normal break-words p-2 text-left text-neutral-400">
 							{#if log.timestamp}
 								<span
 									>{format(new Date(log.timestamp), 'MMM ')}
@@ -95,7 +96,7 @@
 							{/if}
 						</div>
 					{/if}
-					<div class="w-5/6 whitespace-normal break-words p-2 text-left">
+					<div class="{type === 'general' ? 'w-5/6' : 'w-4/5'} whitespace-normal break-words p-2 text-left">
 						{log.message}
 					</div>
 				</div>

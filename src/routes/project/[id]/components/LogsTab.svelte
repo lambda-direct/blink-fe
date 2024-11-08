@@ -10,15 +10,15 @@
 	export let projectId: string;
 	export let serviceId: string;
 
-	let currentPeriod = '1d' as Interval;
+	let currentPeriod = '1h' as Interval;
 	let isLoading: boolean = true;
 	let logs: LogsResponse['logs'] = '';
 	let parsedLogs: { timestamp: Date | null; message: string }[] = [];
 
 	const periods = [
+		{ value: '1h', label: '1 Hour' },
 		{ value: '1d', label: '24 Hour' },
 		{ value: '7d', label: 'Week' },
-		{ value: '14d', label: '2 Week' },
 		{ value: '30d', label: 'Month' }
 	];
 
@@ -36,7 +36,7 @@
 	$: if ($queryLogs?.data) {
 		logs = $queryLogs.data.logs;
 		parsedLogs = logs.split('\n').map((log) => {
-			const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
+			const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)/);
 			return match
 				? { timestamp: new Date(match[1]), message: log }
 				: { timestamp: null, message: log };
@@ -70,6 +70,6 @@
 	{#if isLoading}
 		<Skeleton height={500} />
 	{:else if validLogs}
-		<Logs {parsedLogs} />
+		<Logs {parsedLogs} type='service' />
 	{/if}
 </div>

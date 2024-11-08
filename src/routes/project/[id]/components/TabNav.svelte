@@ -3,6 +3,7 @@
 
 	export let activeTab: string;
 	export let onTabSelect: (tab: Tab) => void;
+	export let hasMounts: boolean = false;
 </script>
 
 <div class="flex gap-8 border-b px-12">
@@ -38,9 +39,19 @@
 	>
 		Logs
 	</button>
+	{#if hasMounts}
+		<button
+			class="relative h-10 font-medium transition-colors hover:text-white {activeTab === 'mounts'
+				? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
+				: 'text-neutral-400'}"
+			on:click={() => onTabSelect('mounts')}
+		>
+			Mounts
+		</button>
+	{/if}
 </div>
 <div
-	class=" scrollbar scrollbar-track-card scrollbar-thumb-[#33323e] h-full max-h-[75vh] overflow-y-auto px-12 py-8"
+	class="scrollbar scrollbar-track-card scrollbar-thumb-[#33323e] h-full max-h-[75vh] overflow-y-auto px-12 py-8"
 >
 	<slot />
 </div>

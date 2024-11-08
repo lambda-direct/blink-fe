@@ -15,7 +15,6 @@
 	const periods = [
 		{ value: '1d', label: '24 Hour' },
 		{ value: '7d', label: 'Week' },
-		{ value: '14d', label: '2 Week' },
 		{ value: '30d', label: 'Month' }
 	];
 
@@ -69,6 +68,6 @@
 	{#if isLoading}
 		<Skeleton height={450} />
 	{:else if validLogs}
-		<Logs {parsedLogs} />
+		<Logs {parsedLogs} type="general" />
 	{/if}
 </div>

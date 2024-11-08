@@ -1,30 +1,31 @@
-export default (length: number, chartWidth: number): number[] => {
-	let indices: number[] = [];
+export default (interval: string, chartWidth: number, totalTimestamps: number): number[] => {
+	const indices: number[] = [0];
 
-	if (chartWidth < 400) {
-		if (length === 24) {
-			indices = [0, 8, 16, 23];
-		} else if (length === 7) {
-			indices = [0, 2, 4, 6];
-		} else if (length === 14) {
-			indices = [0, 6, 13];
-		} else if (length === 30) {
-			indices = [0, 10, 20, 29];
-		} else if (length === 90) {
-			indices = [0, 30, 60, 89];
-		}
+	let count: number;
+
+	if (interval === '1h') {
+		count = 6;
+	} else if (interval === '1d') {
+		count = 5;
+	} else if (interval === '7d') {
+		count = 7;
+	} else if (interval === '30d') {
+		count = 6;
 	} else {
-		if (length === 24) {
-			indices = [0, 6, 12, 18, 23];
-		} else if (length === 7) {
-			indices = [0, 1, 2, 3, 4, 5, 6];
-		} else if (length === 14) {
-			indices = [0, 3, 6, 9, 13];
-		} else if (length === 30) {
-			indices = [0, 6, 12, 18, 24, 29];
-		} else if (length === 90) {
-			indices = [0, 18, 36, 54, 72, 89];
+		return indices;
+	}
+
+	const spacing = Math.floor(totalTimestamps / (chartWidth < 400 ? count - 1 : count));
+
+	for (let i = 1; i < count; i++) {
+		const index = i * spacing;
+		if (index < totalTimestamps) {
+			indices.push(index);
 		}
+	}
+
+	if (indices[indices.length - 1] !== totalTimestamps - 1) {
+		indices.push(totalTimestamps - 1);
 	}
 
 	return indices;

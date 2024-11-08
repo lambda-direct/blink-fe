@@ -6,10 +6,10 @@
 	import type { Interval } from '../../api/statistics';
 	import { useChartStatistics } from '../../queries/statistics';
 	import { onMount } from 'svelte';
-	import {formatBytes} from './utils/formatData';
+	import { formatBytes } from './utils/formatData';
 	import ChartSkeleton from '../../lib/components/Skeleton.svelte';
 
-	let currentPeriod = '1d' as Interval;
+	let currentPeriod = '1h' as Interval;
 	let cpuUsage = [] as number[];
 	let diskUsage = [] as number[];
 	let timestamps = [] as number[];
@@ -21,9 +21,9 @@
 	let columnWidth = 0;
 
 	const periods = [
+		{ value: '1h', label: '1 Hour' },
 		{ value: '1d', label: '24 Hour' },
 		{ value: '7d', label: 'Week' },
-		{ value: '14d', label: '2 Week' },
 		{ value: '30d', label: 'Month' }
 	];
 
@@ -83,7 +83,7 @@
 			</Select.Content>
 		</Select.Root>
 	</div>
-	<div class="grid grid-cols-2 gap-10">
+	<div class="grid grid-cols-1 gap-5 xl:grid-cols-1">
 		<div bind:this={column} class="flex flex-col">
 			<h5>CPU Usage</h5>
 			<p class="text-sm text-neutral-400">Total: 100%</p>
@@ -101,7 +101,13 @@
 				<ChartSkeleton />
 			{:else}
 				{#key `${timestamps.join(',')}-${cpuUsage.join(',')}-${columnWidth}`}
-					<Chart {timestamps} data={cpuUsage} chartWidth={columnWidth} type="percent" />
+					<Chart
+						{timestamps}
+						data={cpuUsage}
+						chartWidth={columnWidth}
+						type="percent"
+						interval={currentPeriod}
+					/>
 				{/key}
 			{/if}
 		</div>
@@ -128,6 +134,7 @@
 						chartWidth={columnWidth}
 						total={totalMemory}
 						type="B"
+						interval={currentPeriod}
 					/>
 				{/key}
 			{/if}
@@ -155,6 +162,7 @@
 						chartWidth={columnWidth}
 						total={totalFileSystem}
 						type="B"
+						interval={currentPeriod}
 					/>
 				{/key}
 			{/if}

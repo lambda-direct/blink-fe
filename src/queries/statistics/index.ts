@@ -2,10 +2,16 @@ import { createQuery } from '@tanstack/svelte-query';
 import { getChartStatistics, getHttpStats, type Interval } from '../../api/statistics';
 
 export const getRefetchInterval = (interval?: Interval): number => {
-	if (interval === '1d') {
-		return 3600000;
-	}
-	return 86400000;
+	// if (interval === '1h') {
+	// 	return 15000;
+	// }
+	// if (interval === '1d') {
+	// 	return 120000;
+	// }
+	// if (interval === '7d') {
+    //     return 300000; 
+    // }
+	return 3600000;
 };
 
 export const useChartStatistics = (params: { interval?: Interval } = {}) => {
