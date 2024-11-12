@@ -34,7 +34,7 @@
 					<div class="flex flex-row items-center gap-2 text-neutral-400">
 						<Globe class="h-4 w-4" />
 						<span>Domain:</span>
-						<span class="text-white">{name}</span>
+						<span class="text-white hover:underline cursor-pointer">{name}</span>
 					</div>
 					{#if isTlsEnabled !== undefined}
 						<div>

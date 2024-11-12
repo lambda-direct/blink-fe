@@ -87,16 +87,6 @@
 		<div bind:this={column} class="flex flex-col">
 			<h5>CPU Usage</h5>
 			<p class="text-sm text-neutral-400">Total: 100%</p>
-			<!-- <Progress.Root
-				{value}
-				max={100}
-				class="relative h-[12px] overflow-hidden rounded-full bg-slate-400"
-			>
-				<div
-					class="bg-foreground h-full w-full flex-1 rounded-full transition-all duration-1000 ease-in-out"
-					style={`transform: translateX(-${100 - (100 * (value ?? 0)) / 100}%)`}
-				/>
-			</Progress.Root> -->
 			{#if isLoading}
 				<ChartSkeleton />
 			{:else}
@@ -114,16 +104,6 @@
 		<div class="flex flex-col">
 			<h5>Memory Usage</h5>
 			<p class="text-sm text-neutral-400">Total: {formatBytes(totalMemory)}</p>
-			<!-- <Progress.Root
-				{value}
-				max={100}
-				class="relative h-[12px] overflow-hidden rounded-full bg-slate-400"
-			>
-				<div
-					class="bg-foreground h-full w-full flex-1 rounded-full transition-all duration-1000 ease-in-out"
-					style={`transform: translateX(-${100 - (100 * (value ?? 0)) / 100}%)`}
-				/>
-			</Progress.Root> -->
 			{#if isLoading}
 				<ChartSkeleton />
 			{:else}
@@ -142,16 +122,6 @@
 		<div class="flex flex-col">
 			<h5>Disk Usage</h5>
 			<p class="text-sm text-neutral-400">Total: {formatBytes(totalFileSystem)}</p>
-			<!-- <Progress.Root
-				{value}
-				max={100}
-				class="relative h-[12px] overflow-hidden rounded-full bg-slate-400"
-			>
-				<div
-					class="bg-foreground h-full w-full flex-1 rounded-full transition-all duration-1000 ease-in-out"
-					style={`transform: translateX(-${100 - (100 * (value ?? 0)) / 100}%)`}
-				/>
-			</Progress.Root> -->
 			{#if isLoading}
 				<ChartSkeleton />
 			{:else}

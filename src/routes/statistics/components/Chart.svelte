@@ -164,7 +164,7 @@
 
 	$: {
 		initializeValues();
-		labelIndices = calculateIndices(interval, chartWidth, timestamps.length);
+		labelIndices = calculateIndices(interval, timestamps);
 	}
 </script>
 
@@ -230,7 +230,7 @@
 				<text
 					x={X_OFFSET + (index / (timestamps.length - 1)) * (chartWidth - X_OFFSET - 5)}
 					y={chartHeight + 20}
-					text-anchor={index === 0 ? 'start' : index === timestamps.length - 1 ? 'end' : 'middle'}
+					text-anchor={index < 5 ? 'start' : index > timestamps.length - 5 ? 'end' : 'middle'}
 					font-size="12"
 					fill="#fff"
 					class="bottom-label"

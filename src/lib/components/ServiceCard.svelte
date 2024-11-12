@@ -48,14 +48,18 @@
 		{#if data.bindMounts && data.bindMounts.length > 0}
 			{#each data.bindMounts as mount}
 				<button
-					class="bg-card hover:bg-accent -mt-6 flex h-16 w-72 max-w-screen-lg cursor-pointer justify-center rounded-lg border p-2 text-sm text-neutral-400 {selected
+					class="bg-card hover:bg-accent -mt-6 flex h-16 w-72 max-w-screen-lg cursor-pointer justify-center rounded-lg border pb-2 pl-4 {selected
 						? 'border-[#853bce]'
 						: ''}"
 					type="button"
 					on:click={() => handleClick(mount.id)}
 					aria-label="Bind Mount"
 				>
-				</button>{/each}
+					<div class="mr-auto flex h-full items-end text-sm text-neutral-400">
+						<span>Mount Storage</span>
+					</div>
+				</button>
+			{/each}
 		{/if}
 	</div>
 {/if}
