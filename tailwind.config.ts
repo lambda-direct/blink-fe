@@ -65,7 +65,7 @@ const config: Config = {
 		scrollbarPlugin,
 		function ({ addBase }) {
 			addBase({
-				html: {
+				'*': {
 					'@apply scrollbar scrollbar-track-card scrollbar-thumb-[#33323e]': {}
 				}
 			});

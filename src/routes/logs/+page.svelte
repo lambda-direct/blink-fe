@@ -43,31 +43,33 @@
 		parsedLogs.length > 0 && parsedLogs.every((log) => log.message && log.message.trim() !== '');
 </script>
 
-<div
-	class="bg-card mx-auto flex h-fit h-full min-h-[50vh] w-full max-w-screen-lg flex-col overflow-hidden rounded-lg border p-6 pt-10"
->
-	<div class="mb-2 flex items-end justify-between border-b pb-2">
-		<h2 class="text-xl font-medium">
-			{#if validLogs}
-				Logs
-			{:else if !isLoading}
-				No Logs
-			{/if}
-		</h2>
-		<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
-			<Select.Trigger class="w-[180px]">
-				<Select.Value placeholder="Period" />
-			</Select.Trigger>
-			<Select.Content>
-				{#each periods as item}
-					<Select.Item value={item.value}>{item.label}</Select.Item>
-				{/each}
-			</Select.Content>
-		</Select.Root>
+<div class="h-full overflow-hidden pb-4">
+	<div
+		class="bg-card mx-auto flex h-full min-h-[50vh] w-full max-w-screen-lg flex-col overflow-hidden rounded-lg border p-6 pt-10"
+	>
+		<div class="mb-2 flex items-end justify-between border-b pb-2">
+			<h2 class="text-xl font-medium">
+				{#if validLogs}
+					Logs
+				{:else if !isLoading}
+					No Logs
+				{/if}
+			</h2>
+			<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
+				<Select.Trigger class="w-[180px]">
+					<Select.Value placeholder="Period" />
+				</Select.Trigger>
+				<Select.Content>
+					{#each periods as item}
+						<Select.Item value={item.value}>{item.label}</Select.Item>
+					{/each}
+				</Select.Content>
+			</Select.Root>
+		</div>
+		{#if isLoading}
+			<Skeleton height={450} />
+		{:else if validLogs}
+			<Logs {parsedLogs} type="general" />
+		{/if}
 	</div>
-	{#if isLoading}
-		<Skeleton height={450} />
-	{:else if validLogs}
-		<Logs {parsedLogs} type="general" />
-	{/if}
 </div>

@@ -11,7 +11,7 @@
 	} = service;
 </script>
 
-<div class="flex flex-col gap-10">
+<div class="flex flex-col gap-10 mb-4">
 	<div class="flex flex-col gap-6">
 		<div class="flex items-center gap-6 text-neutral-400">
 			<CircleIcon icon={Code} />

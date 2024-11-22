@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Code, Network, Cloud } from 'lucide-svelte';
 	import CircleIcon from './CircleIcon.svelte';
 	import type { GetServiceResponse } from '../../../../api/services';
 

@@ -16,7 +16,6 @@
 	import VariablesTab from './components/VariablesTab.svelte';
 	import LogsTab from './components/LogsTab.svelte';
 	import MetricsTab from './components/MetricsTab.svelte';
-	import MountTab from './components/MountsTab.svelte';
 	import MountsTab from './components/MountsTab.svelte';
 
 	let services: GetServicesResponse['services'] = [];
