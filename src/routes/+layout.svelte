@@ -23,22 +23,19 @@
 
 	onMount(async () => {
 		if (!browser) return;
-
 		try {
 			const urlParams = new URLSearchParams(window.location.search);
 			const code = urlParams.get('code');
 			const tokenFromUrl = urlParams.get('token');
 			const accessToken = localStorage.getItem('accessToken');
 
-			if (!accessToken && tokenFromUrl && code) {
-				const data = await useAccessToken(tokenFromUrl, code);
-				localStorage.setItem('accessToken', data.accessToken);
-				localStorage.setItem('refreshToken', data.refreshToken);
+			if (!accessToken && code) {
+				const { accessToken, refreshToken } = await useAccessToken(tokenFromUrl, code);
+				localStorage.setItem('accessToken', accessToken);
+				localStorage.setItem('refreshToken', refreshToken);
 				goto('/dashboard');
 			} else if (!accessToken) {
 				goto('/');
-			} else {
-				isAuthenticated = true;
 			}
 		} catch (error) {
 			console.error('Error:', error);
