@@ -112,9 +112,13 @@
 	<span class="text-xl">Projects</span>
 	<p class="text-sm text-neutral-400">Manage your projects</p>
 
-	<div class="mt-4 grid h-full grid-cols-3 gap-4 overflow-auto border-t pt-4">
-		{#each projects as project}
-			<ProjectCard {project} servicesCount={servicesCountMap[project.id]} />
-		{/each}
-	</div>
+	{#if projects.length > 0}
+		<div class="mt-4 grid h-full grid-cols-3 gap-4 overflow-auto border-t pt-4">
+			{#each projects as project}
+				<ProjectCard {project} servicesCount={servicesCountMap[project.id]} />
+			{/each}
+		</div>
+	{:else}
+		<p class="mt-4 border-t pt-4 text-center text-xl font-medium">No projects found</p>
+	{/if}
 </section>

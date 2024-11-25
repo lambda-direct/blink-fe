@@ -10,8 +10,9 @@
 	import { writable } from 'svelte/store';
 	import type { GetProjectsResponse } from '../api/projects';
 	import { useProjects } from '../queries/projects';
+	import { getUser, type UserResponse } from '../api/user';
+	import { useUser } from '../queries/user';
 
-	const user = writable(null);
 	let selectedProjectId: Selected<string>;
 	let projects: GetProjectsResponse['projects'] = [];
 	let isAuthenticated = false;
@@ -36,22 +37,11 @@
 		}
 	}
 
-	onMount(async () => {
-		if (isAuthenticated) {
-			try {
-				const userData = await fetch('/api/user');
-				if (userData.ok) {
-					const data = await userData.json();
-					user.set(data);
-				}
-			} catch (error) {
-				console.error('Error fetching user data', error);
-			}
-		}
-	});
+	$: userQuery = useUser();
+	const user = $userQuery?.data?.user;
 
-	function getInitials(username: string): string {
-		return username.charAt(0).toUpperCase() + username.charAt(1).toUpperCase();
+	function getInitials(name: string): string {
+		return name.charAt(0).toUpperCase();
 	}
 
 	function handleLogout() {
@@ -121,16 +111,16 @@
 					</Select.Root>
 				</div>
 			{/if}
-			<!-- {#if $user}
+			{#if user}
 				<div class="absolute right-0 top-0 m-4 mr-6">
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger>
 							<Avatar.Root class="h-8 w-8">
 								{#if user.avatarUrl}
 									<Avatar.Image src={user.avatarUrl} alt="User Avatar" />
-								{:else}
+								{:else if user.name}
 									<Avatar.Fallback class="bg-[#33323e] text-sm text-white">
-										{getInitials(user.username)}
+										{getInitials(user.name)}
 										MK
 									</Avatar.Fallback>
 								{/if}
@@ -141,9 +131,9 @@
 								<Avatar.Root class="h-12 w-12">
 									{#if user.avatarUrl}
 										<Avatar.Image src={user.avatarUrl} alt="User Avatar" />
-									{:else}
+									{:else if user.name}
 										<Avatar.Fallback class="bg-[#33323e] text-lg text-white">
-											{getInitials(user.username)}
+											{getInitials(user.name)}
 											MK
 										</Avatar.Fallback>
 									{/if}
@@ -159,7 +149,7 @@
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
 				</div>
-			{/if} -->
+			{/if}
 		</nav>
 	{/if}
 </header>

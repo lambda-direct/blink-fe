@@ -66,8 +66,8 @@
 	});
 </script>
 
-<div class="h-full overflow-auto">
-	<div class="bg-card mx-auto mb-4 flex max-w-screen-lg flex-col rounded-md border p-6 pt-10">
+<div class="h-full overflow-auto pb-4">
+	<div class="bg-card mx-auto flex h-full max-w-screen-lg flex-col rounded-md border p-6 pt-10">
 		<div class="mb-5 flex justify-between">
 			<div>
 				<h3 class="mb-1 text-xl font-medium">Statistics</h3>
@@ -84,60 +84,64 @@
 				</Select.Content>
 			</Select.Root>
 		</div>
-		<div class="grid grid-cols-1 gap-5 xl:grid-cols-1">
-			<div bind:this={column} class="flex flex-col">
-				<h5>CPU Usage</h5>
-				<p class="text-sm text-neutral-400">Total: 100%</p>
-				{#if isLoading}
-					<ChartSkeleton />
-				{:else}
-					{#key `${timestamps.join(',')}-${cpuUsage.join(',')}-${columnWidth}`}
-						<Chart
-							{timestamps}
-							data={cpuUsage}
-							chartWidth={columnWidth}
-							type="percent"
-							interval={currentPeriod}
-						/>
-					{/key}
-				{/if}
+		{#if timestamps.length}
+			<div class="grid grid-cols-1 gap-5 xl:grid-cols-1">
+				<div bind:this={column} class="flex flex-col">
+					<h5>CPU Usage</h5>
+					<p class="text-sm text-neutral-400">Total: 100%</p>
+					{#if isLoading}
+						<ChartSkeleton />
+					{:else if cpuUsage.length > 0}
+						{#key `${timestamps.join(',')}-${cpuUsage.join(',')}-${columnWidth}`}
+							<Chart
+								{timestamps}
+								data={cpuUsage}
+								chartWidth={columnWidth}
+								type="percent"
+								interval={currentPeriod}
+							/>
+						{/key}
+					{/if}
+				</div>
+				<div class="flex flex-col">
+					<h5>Memory Usage</h5>
+					<p class="text-sm text-neutral-400">Total: {formatBytes(totalMemory)}</p>
+					{#if isLoading}
+						<ChartSkeleton />
+					{:else if memoryUsage.length > 0}
+						{#key `${timestamps.join(',')}-${memoryUsage.join(',')}-${columnWidth}`}
+							<Chart
+								{timestamps}
+								data={memoryUsage}
+								chartWidth={columnWidth}
+								total={totalMemory}
+								type="B"
+								interval={currentPeriod}
+							/>
+						{/key}
+					{/if}
+				</div>
+				<div class="flex flex-col">
+					<h5>Disk Usage</h5>
+					<p class="text-sm text-neutral-400">Total: {formatBytes(totalFileSystem)}</p>
+					{#if isLoading}
+						<ChartSkeleton />
+					{:else if diskUsage.length > 0}
+						{#key `${timestamps.join(',')}-${diskUsage.join(',')}-${columnWidth}`}
+							<Chart
+								{timestamps}
+								data={diskUsage}
+								chartWidth={columnWidth}
+								total={totalFileSystem}
+								type="B"
+								interval={currentPeriod}
+							/>
+						{/key}
+					{/if}
+				</div>
 			</div>
-			<div class="flex flex-col">
-				<h5>Memory Usage</h5>
-				<p class="text-sm text-neutral-400">Total: {formatBytes(totalMemory)}</p>
-				{#if isLoading}
-					<ChartSkeleton />
-				{:else}
-					{#key `${timestamps.join(',')}-${memoryUsage.join(',')}-${columnWidth}`}
-						<Chart
-							{timestamps}
-							data={memoryUsage}
-							chartWidth={columnWidth}
-							total={totalMemory}
-							type="B"
-							interval={currentPeriod}
-						/>
-					{/key}
-				{/if}
-			</div>
-			<div class="flex flex-col">
-				<h5>Disk Usage</h5>
-				<p class="text-sm text-neutral-400">Total: {formatBytes(totalFileSystem)}</p>
-				{#if isLoading}
-					<ChartSkeleton />
-				{:else}
-					{#key `${timestamps.join(',')}-${diskUsage.join(',')}-${columnWidth}`}
-						<Chart
-							{timestamps}
-							data={diskUsage}
-							chartWidth={columnWidth}
-							total={totalFileSystem}
-							type="B"
-							interval={currentPeriod}
-						/>
-					{/key}
-				{/if}
-			</div>
-		</div>
+		{:else}
+			<p class="m-4 text-center text-xl font-medium">No Data</p>
+		{/if}
 	</div>
 </div>
