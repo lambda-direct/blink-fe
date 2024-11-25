@@ -12,6 +12,10 @@
 	let isLoading = true;
 	let isAuthenticated = false;
 
+	if (typeof window !== 'undefined') {
+		isAuthenticated = !!localStorage.getItem('accessToken');
+	}
+
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {

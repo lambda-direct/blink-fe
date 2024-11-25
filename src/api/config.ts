@@ -1,13 +1,7 @@
-import axios, {
-	// AxiosError,
-	type AxiosInstance
-	// AxiosResponse,
-	// InternalAxiosRequestConfig,
-} from 'axios';
+import axios, { type AxiosInstance } from 'axios';
+import { refreshAccessToken } from './auth';
 
 const BASE_URL = import.meta.env.VITE_BASE_API_URL;
-// const new;
-// const 2new;
 
 const instance: AxiosInstance = axios.create({
 	baseURL: BASE_URL,
@@ -20,38 +14,49 @@ const instance: AxiosInstance = axios.create({
 
 instance.defaults.headers.get.Accept = 'application/json';
 
-// const interceptors = instance.interceptors
+instance.interceptors.request.use(
+	(config) => {
+		const accessToken = localStorage.getItem('accessToken');
+		if (accessToken) {
+			config.headers['Authorization'] = `Bearer ${accessToken}`;
+		}
+		return config;
+	},
+	(error) => {
+		console.error('Request Interceptor Error:', error);
+		return Promise.reject(error);
+	}
+);
 
-// interceptors.request.use(
-//   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-//     const token = localStorage.getItem('accToken')
+instance.interceptors.response.use(
+	(response) => response,
+	async (error) => {
+		const originalRequest = error.config;
 
-//     if (!token) return config
+		if (originalRequest && error.response?.status === 401 && !originalRequest._retry) {
+			originalRequest._retry = true;
 
-//     config.headers.Authorization = 'Bearer ' + token
+			try {
+				const refreshToken = localStorage.getItem('refreshToken');
+				if (!refreshToken) throw new Error('No refresh token available');
 
-//     return config
-//   },
-//   (err: AxiosError): Promise<AxiosError> => Promise.reject(err)
-// )
+				const response = await refreshAccessToken(refreshToken);
+				const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-// interceptors.response.use(
-//   (res: AxiosResponse) => res,
-//   (err: AxiosError<{ message: string }>): Promise<AxiosError> => {
-//     const status = err.response?.status
+				localStorage.setItem('accessToken', accessToken);
+				localStorage.setItem('refreshToken', newRefreshToken);
 
-//     if (status === 401) {
-//       // TODO: refreshing
+				instance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+				originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
 
-//       return Promise.reject(err)
-//     }
+				return instance(originalRequest);
+			} catch (refreshError) {
+				return Promise.reject(refreshError);
+			}
+		}
 
-//     if (err.response && err.response.data.message) {
-//       throw new Error(err.response.data.message)
-//     }
-
-//     return Promise.reject(err)
-//   }
-// )
+		return Promise.reject(error);
+	}
+);
 
 export default instance;

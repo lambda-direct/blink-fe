@@ -15,6 +15,7 @@
 
 	let selectedProjectId: Selected<string>;
 	let projects: GetProjectsResponse['projects'] = [];
+	let user: UserResponse['user'] | null = null;
 	let isAuthenticated = false;
 	let projectId: string | null = null;
 
@@ -38,7 +39,11 @@
 	}
 
 	$: userQuery = useUser();
-	const user = $userQuery?.data?.user;
+	$: {
+		if ($userQuery?.data?.user) {
+			user = $userQuery?.data?.user;
+		}
+	}
 
 	function getInitials(name: string): string {
 		return name.charAt(0).toUpperCase();
@@ -46,7 +51,9 @@
 
 	function handleLogout() {
 		localStorage.removeItem('accessToken');
+		localStorage.removeItem('refreshToken');
 		goto('/');
+		window.location.reload();
 	}
 
 	function handleSelectProject(option: Selected<string> | undefined) {
@@ -126,9 +133,9 @@
 								{/if}
 							</Avatar.Root>
 						</DropdownMenu.Trigger>
-						<DropdownMenu.Content class="w-56" align="end">
-							<div class="w-54 bg-accent m-2 flex flex-col items-center gap-2 rounded-lg p-4">
-								<Avatar.Root class="h-12 w-12">
+						<DropdownMenu.Content class="w-fit min-w-56 overflow-hidden" align="end">
+							<div class="w-54 bg-accent m-2 flex flex-col items-center gap-4 rounded-lg p-6">
+								<Avatar.Root class="h-16 w-16">
 									{#if user.avatarUrl}
 										<Avatar.Image src={user.avatarUrl} alt="User Avatar" />
 									{:else if user.name}
@@ -138,8 +145,8 @@
 										</Avatar.Fallback>
 									{/if}
 								</Avatar.Root>
-								<span class="text-sm font-semibold">{user.name}</span>
-								<span class="text-xs text-neutral-400">{user.email}</span>
+								<span class="font-semibold">{user.name}</span>
+								<span class="text-sm text-neutral-400">{user.email}</span>
 							</div>
 							<DropdownMenu.DropdownMenuSeparator />
 							<DropdownMenu.Item class="flex items-center gap-x-2" on:click={handleLogout}>
