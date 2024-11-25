@@ -18,7 +18,7 @@
 	let projectId: string | null = null;
 
 	if (typeof window !== 'undefined') {
-		isAuthenticated = !!localStorage.getItem('access_token');
+		isAuthenticated = !!localStorage.getItem('accessToken');
 	}
 
 	$: queryProjects = useProjects();
@@ -55,7 +55,7 @@
 	}
 
 	function handleLogout() {
-		localStorage.removeItem('access_token');
+		localStorage.removeItem('accessToken');
 		goto('/');
 	}
 
