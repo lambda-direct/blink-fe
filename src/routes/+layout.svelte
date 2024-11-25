@@ -37,7 +37,7 @@
 				const { accessToken, refreshToken } = await useAccessToken(tokenFromUrl, code);
 				localStorage.setItem('accessToken', accessToken);
 				localStorage.setItem('refreshToken', refreshToken);
-				goto('/dashboard');
+				window.location.href = '/dashboard';
 			} else if (!accessToken) {
 				goto('/');
 			}
