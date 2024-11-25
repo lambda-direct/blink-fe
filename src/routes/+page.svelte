@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { Check, Copy, Github } from 'lucide-svelte';
 	import { writable } from 'svelte/store';
+
+	let isAuthenticated = false;
+
+	if (typeof window !== 'undefined') {
+		isAuthenticated = !!localStorage.getItem('accessToken');
+	}
 	const copiedMap = writable(new Map<string, boolean>());
 	async function copyToClipboard(id: string, value: string) {
 		try {
@@ -90,22 +96,24 @@
 			</div>
 		</div>
 
-		<div class="w-full max-w-lg flex items-center my-4 mx-auto">
+		<div class="mx-auto my-4 flex w-full max-w-lg items-center">
 			<div class="flex-grow border-t border-gray-600"></div>
 			<span class="mx-4 text-gray-600">OR</span>
 			<div class="flex-grow border-t border-gray-600"></div>
 		</div>
 
-		<button
-			on:click={() => (window.location.href = githubAuthUrl)}
-			class="flex w-fit items-center justify-center gap-2 rounded-lg bg-[#853bce] px-4 py-2 text-white hover:bg-[#a667e4]"
-		>
-			<Github class="h-5 w-5" />
-			<span>Sign in with GitHub</span>
-		</button>
+		{#if !isAuthenticated}
+			<button
+				on:click={() => (window.location.href = githubAuthUrl)}
+				class="flex w-fit items-center justify-center gap-2 rounded-lg bg-[#853bce] px-4 py-2 text-white hover:bg-[#a667e4]"
+			>
+				<Github class="h-5 w-5" />
+				<span>Sign in with GitHub</span>
+			</button>
+		{/if}
 
 		<div
-			class="bg-accent mb-4 flex w-full min-h-[500px] flex-1 items-center justify-center rounded-lg border p-4"
+			class="bg-accent mb-4 flex min-h-[500px] w-full flex-1 items-center justify-center rounded-lg border p-4"
 		>
 			<p class="text-center text-xl">Here will be demo</p>
 		</div>

@@ -7,11 +7,10 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
 	import type { GetProjectsResponse } from '../api/projects';
 	import { useProjects } from '../queries/projects';
 	import { getUser, type UserResponse } from '../api/user';
-	import { useUser } from '../queries/user';
+
 
 	let selectedProjectId: Selected<string>;
 	let projects: GetProjectsResponse['projects'] = [];
@@ -38,13 +37,6 @@
 		}
 	}
 
-	$: userQuery = useUser();
-	$: {
-		if ($userQuery?.data?.user) {
-			user = $userQuery?.data?.user;
-		}
-	}
-
 	function getInitials(name: string): string {
 		return name.charAt(0).toUpperCase();
 	}
@@ -66,6 +58,17 @@
 	}
 
 	$: currentPath = $page.url.pathname;
+
+	onMount(async () => {
+		if (isAuthenticated) {
+			try {
+				const response = await getUser();
+				user = response.user;
+			} catch (error) {
+				console.error(error);
+			}
+		}
+	});
 </script>
 
 <header class="mx-auto grid items-center py-4">
@@ -133,7 +136,7 @@
 								{/if}
 							</Avatar.Root>
 						</DropdownMenu.Trigger>
-						<DropdownMenu.Content class="w-fit min-w-56 overflow-hidden" align="end">
+						<DropdownMenu.Content class="mt-2 w-fit min-w-56  overflow-hidden" align="end">
 							<div class="w-54 bg-accent m-2 flex flex-col items-center gap-4 rounded-lg p-6">
 								<Avatar.Root class="h-16 w-16">
 									{#if user.avatarUrl}
