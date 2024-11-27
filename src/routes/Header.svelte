@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LogOut } from 'lucide-svelte';
+	import { Check, ChevronDown, LogOut, Pencil } from 'lucide-svelte';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Select from '$lib/components/ui/select';
@@ -8,10 +8,17 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import type { GetProjectsResponse } from '../api/projects';
+	import type { Response, RequestBody } from '../api/instance';
 	import { useProjects } from '../queries/projects';
 	import { getUser, type UserResponse } from '../api/user';
+	import { useInstances } from '../queries/instances';
+	import { setInstanceId } from '../stores/instanceStore';
+	import { patchInstanceById } from '../api/instance';
 
-
+	let instances: Response['instances'] = [];
+	let selectedInstanceId: string | null = null;
+	let isEditing: boolean = false;
+	let editItemName: string = '';
 	let selectedProjectId: Selected<string>;
 	let projects: GetProjectsResponse['projects'] = [];
 	let user: UserResponse['user'] | null = null;
@@ -22,7 +29,69 @@
 		isAuthenticated = !!localStorage.getItem('accessToken');
 	}
 
-	$: queryProjects = useProjects();
+	$: queryInstances = useInstances();
+	$: selectedInstance = instances.find((instance) => instance.id === selectedInstanceId);
+	$: if ($queryInstances.data) {
+		instances = $queryInstances.data.instances;
+		if (instances.length > 0) {
+			const selectedInstance = instances.reduce((prev, curr) => {
+				if (curr.lastLoginAt && (!prev.lastLoginAt || curr.lastLoginAt > prev.lastLoginAt)) {
+					return curr;
+				}
+				return prev;
+			}, instances[0]);
+
+			selectedInstanceId = selectedInstance.id;
+			setInstanceId(selectedInstanceId);
+		}
+	}
+
+	function handleSelectInstance(id: string) {
+		selectedInstanceId = id;
+		setInstanceId(id);
+	}
+
+	function handleRenameClick() {
+		if (selectedInstance) {
+			isEditing = true;
+			editItemName = selectedInstance.name;
+		}
+	}
+
+	function handleCancelEdit() {
+		isEditing = false;
+		editItemName = '';
+	}
+
+	async function handleUpdateItem() {
+		const newItemName = editItemName.trim().replace(/\s+/g, ' ');
+		if (newItemName && selectedInstanceId) {
+			const data: RequestBody = { name: newItemName };
+			try {
+				await patchInstanceById(selectedInstanceId, data);
+				const instanceIndex = instances.findIndex((instance) => instance.id === selectedInstanceId);
+				if (instanceIndex !== -1) {
+					instances[instanceIndex] = { ...instances[instanceIndex], name: newItemName };
+				}
+			} catch (error) {
+				console.error(error);
+			} finally {
+				handleCancelEdit();
+			}
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			handleCancelEdit();
+		} else if (event.key === 'Enter') {
+			handleUpdateItem();
+		} else {
+			event.stopPropagation();
+		}
+	}
+
+	$: queryProjects = selectedInstanceId ? useProjects(selectedInstanceId, true) : null;
 	$: {
 		if ($queryProjects?.data) {
 			projects = $queryProjects.data.projects;
@@ -73,7 +142,7 @@
 
 <header class="mx-auto grid items-center py-4">
 	{#if isAuthenticated}
-		<nav class="w-full border-b">
+		<nav class="relative w-full border-b">
 			<div class="mx-auto flex max-w-screen-lg items-center justify-end">
 				<a
 					href="/dashboard"
@@ -103,8 +172,65 @@
 					Logs
 				</a>
 			</div>
-			{#if projectId}
-				<div class="absolute top-0 m-2 ml-24 flex items-center">
+			<div class="absolute left-24 top-0 flex h-10 items-center gap-1">
+				{#if selectedInstance}
+					<span class="mr-2 text-gray-600">/</span>
+					<DropdownMenu.Root closeOnItemClick={false} onOutsideClick={handleCancelEdit}>
+						<DropdownMenu.Trigger class="mx-auto flex items-center gap-2 outline-none">
+							{selectedInstance.name}
+							<ChevronDown class="h-5 w-5 text-gray-600" />
+						</DropdownMenu.Trigger>
+
+						<DropdownMenu.Content class="w-fit min-w-52 mt-2">
+							{#each instances as instance}
+								<DropdownMenu.Item
+									on:click={() => handleSelectInstance(instance.id)}
+									class="flex items-center gap-2 text-base 
+					 text-gray-400 hover:text-white
+					  {instance.id === selectedInstanceId ? 'text-white' : ''}"
+								>
+									<div class="h-4 w-4">
+										{#if instance.id === selectedInstanceId}
+											<Check class="h-4 w-4" />
+										{/if}
+									</div>
+									{instance.name}
+								</DropdownMenu.Item>
+							{/each}
+
+							<DropdownMenu.DropdownMenuSeparator />
+
+							{#if isEditing}
+								<DropdownMenu.Item class="bg-accent relative text-base">
+									<!-- svelte-ignore a11y-autofocus -->
+									<input
+										id="renameInput"
+										type="text"
+										class="bg-accent placeholder-grey-400 w-full outline-none"
+										bind:value={editItemName}
+										on:focusout={() => document.getElementById('renameInput')?.focus()}
+										on:keydown={handleKeydown}
+										autofocus
+									/>
+								</DropdownMenu.Item>
+							{:else}
+								<DropdownMenu.Item
+									class="flex items-center gap-2 text-base"
+									on:click={handleRenameClick}
+								>
+									<Pencil class="h-4 w-4" />
+									Rename
+								</DropdownMenu.Item>
+							{/if}
+
+							<!-- <DropdownMenu.Item class="flex items-center gap-2 text-base" on:click={() => {}}>
+				<PlusCircle class="h-4 w-4" />
+				New VPS
+			</DropdownMenu.Item> -->
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
+				{/if}
+				{#if projectId}
 					<span class="text-gray-600">/</span>
 					<Select.Root selected={selectedProjectId} onSelectedChange={handleSelectProject}>
 						<Select.Trigger
@@ -119,10 +245,10 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
-				</div>
-			{/if}
+				{/if}
+			</div>
 			{#if user}
-				<div class="absolute right-0 top-0 m-4 mr-6">
+				<div class="absolute right-6 -top-1 flex h-10 items-center">
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger>
 							<Avatar.Root class="h-8 w-8">

@@ -3,6 +3,7 @@
 	import { useService } from '../../queries/services';
 	import getTimeAgo from '../../routes/statistics/utils/getTimeAgo';
 	import { Database } from 'lucide-svelte';
+	import { selectedInstanceId } from '../../stores/instanceStore';
 
 	export let onClick: (serviceId: string, mountId: string | null) => void;
 	export let serviceId: string;
@@ -16,7 +17,9 @@
 		onClick(serviceId, mountId);
 	}
 
-	$: queryService = useService(projectId, serviceId);
+	$: queryService = $selectedInstanceId
+		? useService($selectedInstanceId, projectId, serviceId)
+		: null;
 	$: {
 		if ($queryService?.data) {
 			data = $queryService.data;

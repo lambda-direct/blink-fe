@@ -10,6 +10,7 @@
 	import Legend from './Legend.svelte';
 	import type { ChartColors } from '../+page.svelte';
 	import { getRandomColor } from '../../../statistics/utils/getRandomColor';
+	import { selectedInstanceId } from '../../../../stores/instanceStore';
 
 	export let projectId: string;
 	export let serviceId: string;
@@ -76,11 +77,13 @@
 		if (!selectedStatusCode && statusCodeCounts.some((entry) => '200' in entry)) {
 			selectedStatusCode = '200';
 		}
-		selectedStatusCode
+		selectedStatusCode;
 	}
 
 	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
-	$: queryChart = useHttpStats(projectId, serviceId, { interval: currentPeriod });
+	$: queryChart = $selectedInstanceId
+		? useHttpStats($selectedInstanceId, projectId, serviceId, { interval: currentPeriod })
+		: null;
 	$: if ($queryChart?.data?.responseTimeChart) {
 		timestamps = $queryChart.data.responseTimeChart.map((item) => item.timestamp);
 		responseTimes = $queryChart.data.responseTimeChart.map((item) => item.averageResponseTime);

@@ -1,8 +1,10 @@
 import axiosCfg from '../config';
 
 const API = {
-	SERVICES: (projectId: string) => `projects/${projectId}/services`,
-	SERVICE: (projectId: string, serviceId: string) => `projects/${projectId}/services/${serviceId}`
+	SERVICES: (instanceId: string, projectId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services`,
+	SERVICE: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}`
 };
 export interface GetServicesResponse {
 	services: {
@@ -51,12 +53,12 @@ export interface GetServiceResponse {
 	}[];
 }
 
-function getServices(projectId: string) {
-	return axiosCfg.get<GetServicesResponse>(API.SERVICES(projectId));
+function getServices(instanceId: string, projectId: string) {
+	return axiosCfg.get<GetServicesResponse>(API.SERVICES(instanceId, projectId));
 }
 
-function getService(projectId: string, serviceId: string) {
-	return axiosCfg.get<GetServiceResponse>(API.SERVICE(projectId, serviceId));
+function getService(instanceId: string, projectId: string, serviceId: string) {
+	return axiosCfg.get<GetServiceResponse>(API.SERVICE(instanceId, projectId, serviceId));
 }
 
 export { getServices, getService };

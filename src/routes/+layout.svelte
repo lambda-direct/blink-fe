@@ -3,11 +3,9 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
-
 	import Header from './Header.svelte';
-
-	import '../app.css';
 	import { useAccessToken } from '../queries/auth';
+	import '../app.css';
 
 	let isLoading = true;
 	let isAuthenticated = false;

@@ -6,9 +6,10 @@
 	import type { Interval } from '../../api/statistics';
 	import { useLogs } from '../../queries/logs';
 	import type { LogsResponse } from '../../api/logs';
+	import { selectedInstanceId } from '../../stores/instanceStore';
 
 	let currentPeriod = '1d' as Interval;
-	let isLoading: boolean = true;
+	let isLoading: boolean = false;
 	let logs: LogsResponse['logs'] = '';
 	let parsedLogs: { timestamp: Date | null; message: string }[] = [];
 
@@ -22,12 +23,20 @@
 		if (!option) return;
 		if (option.value !== currentPeriod) {
 			currentPeriod = option.value as Interval;
-			isLoading = true;
 		}
 	}
 
 	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
-	$: queryLogs = useLogs({ interval: currentPeriod });
+	$: queryLogs = $selectedInstanceId
+		? useLogs($selectedInstanceId, { interval: currentPeriod })
+		: null;
+	$: {
+		if ($queryLogs) {
+			isLoading = $queryLogs.isFetching;
+		} else {
+			isLoading = false;
+		}
+	}
 
 	$: if ($queryLogs?.data) {
 		logs = $queryLogs.data.logs;
@@ -37,7 +46,6 @@
 				? { timestamp: new Date(match[1]), message: log }
 				: { timestamp: null, message: log };
 		});
-		isLoading = false;
 	}
 	$: validLogs =
 		parsedLogs.length > 0 && parsedLogs.every((log) => log.message && log.message.trim() !== '');

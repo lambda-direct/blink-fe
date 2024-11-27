@@ -1,7 +1,7 @@
 import axiosCfg from '../config';
 
 const API = {
-	PROJECTS: 'projects'
+	PROJECTS: (instanceId: string) => `instances/${instanceId}/projects`
 };
 
 export interface GetProjectsResponse {
@@ -12,8 +12,8 @@ export interface GetProjectsResponse {
 	}[];
 }
 
-function getProjects() {
-	return axiosCfg.get<GetProjectsResponse>(API.PROJECTS);
+function getProjects(instanceId: string) {
+	return axiosCfg.get<GetProjectsResponse>(API.PROJECTS(instanceId));
 }
 
 export { getProjects };

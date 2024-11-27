@@ -1,22 +1,24 @@
 import { createQuery } from '@tanstack/svelte-query';
 import { getServices, getService } from '../../api/services';
 
-export const useServices = (projectId: string) => {
+export const useServices = (instanceId: string, projectId: string) => {
 	return createQuery({
-		queryKey: ['services', projectId], 
+		queryKey: ['services', instanceId, projectId],
 		queryFn: async () => {
-			const response = await getServices(projectId);
+			const response = await getServices(instanceId, projectId);
 			return response.data.services;
-		}
+		},
+		enabled: !!instanceId
 	});
 };
 
-export const useService = (projectId: string, serviceId: string) => {
+export const useService = (instanceId: string, projectId: string, serviceId: string) => {
 	return createQuery({
-		queryKey: ['service', projectId, serviceId],
+		queryKey: ['service', instanceId, projectId, serviceId],
 		queryFn: async () => {
-			const response = await getService(projectId, serviceId);
+			const response = await getService(instanceId, projectId, serviceId);
 			return response.data;
-		}
+		},
+		enabled: !!instanceId
 	});
 };

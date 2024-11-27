@@ -9,25 +9,27 @@ export const getRefetchInterval = (interval?: Interval): number => {
 	// 	return 120000;
 	// }
 	// if (interval === '7d') {
-    //     return 300000; 
-    // }
+	//     return 300000;
+	// }
 	return 3600000;
 };
 
-export const useChartStatistics = (params: { interval?: Interval } = {}) => {
+export const useChartStatistics = (instanceId: string, params: { interval?: Interval } = {}) => {
 	const refetchInterval = getRefetchInterval(params.interval);
 	return createQuery({
-		queryKey: ['chart-data', params],
+		queryKey: ['chart-data', instanceId, params],
 		queryFn: async () => {
-			const response = await getChartStatistics(params);
+			const response = await getChartStatistics(instanceId, params);
 			const { chart, values } = response.data;
 			return { chart, values };
 		},
-		refetchInterval
+		refetchInterval,
+		enabled: !!instanceId
 	});
 };
 
 export const useHttpStats = (
+	instanceId: string,
 	projectId: string,
 	serviceId: string,
 	params: { interval?: Interval } = {}
@@ -35,12 +37,13 @@ export const useHttpStats = (
 	const refetchInterval = getRefetchInterval(params.interval);
 
 	return createQuery({
-		queryKey: ['http-stats', projectId, serviceId, params],
+		queryKey: ['http-stats', instanceId, projectId, serviceId, params],
 		queryFn: async () => {
-			const response = await getHttpStats(projectId, serviceId, params);
+			const response = await getHttpStats(instanceId, projectId, serviceId, params);
 			const { responseTimeChart, statusCodeCountChart } = response.data;
 			return { responseTimeChart, statusCodeCountChart };
 		},
-		refetchInterval
+		refetchInterval,
+		enabled: !!instanceId
 	});
 };

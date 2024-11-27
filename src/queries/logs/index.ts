@@ -1,22 +1,24 @@
-// queries/logs.ts
 import { createQuery } from '@tanstack/svelte-query';
 import { getLogs, getServiceLogs } from '../../api/logs';
 import type { Interval } from '../../api/statistics';
 import { getRefetchInterval } from '../statistics';
 
-export const useLogs = (params: { interval?: Interval } = {}) => {
+export const useLogs = (instanceId: string, params: { interval?: Interval } = {}) => {
 	const refetchInterval = getRefetchInterval(params.interval);
+
 	return createQuery({
-		queryKey: ['logs', params],
+		queryKey: ['logs', instanceId, params],
 		queryFn: async () => {
-			const response = await getLogs(params);
+			const response = await getLogs(instanceId, params);
 			return response.data;
 		},
-		refetchInterval
+		refetchInterval,
+		enabled: !!instanceId
 	});
 };
 
 export const useServiceLogs = (
+	instanceId: string,
 	projectId: string,
 	serviceId: string,
 	params: { interval?: Interval } = {}
@@ -24,11 +26,12 @@ export const useServiceLogs = (
 	const refetchInterval = getRefetchInterval(params.interval);
 
 	return createQuery({
-		queryKey: ['service-logs', projectId, serviceId, params],
+		queryKey: ['service-logs', instanceId, projectId, serviceId, params],
 		queryFn: async () => {
-			const response = await getServiceLogs(projectId, serviceId, params);
+			const response = await getServiceLogs(instanceId, projectId, serviceId, params);
 			return response.data;
 		},
-		refetchInterval
+		refetchInterval,
+		enabled: !!instanceId
 	});
 };

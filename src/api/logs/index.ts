@@ -1,34 +1,35 @@
 import axiosCfg from '../config';
 import type { Interval } from '../statistics';
+
 const BASE_URL = import.meta.env.VITE_BASE_API_URL;
 
 const API = {
-	LOGS: 'logs/traefik',
-	LIVE_LOGS: 'logs/traefik/realtime',
-	SERVICE_LOGS: (projectId: string, serviceId: string) =>
-		`projects/${projectId}/services/${serviceId}/logs`,
-	SERVICE_LIVE_LOGS: (projectId: string, serviceId: string) =>
-		`projects/${projectId}/services/${serviceId}/logs/realtime`
+	LOGS: (instanceId: string) => `instances/${instanceId}/logs/traefik`,
+	LIVE_LOGS: (instanceId: string) => `instances/${instanceId}/logs/traefik/realtime`,
+	SERVICE_LOGS: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/logs`,
+	SERVICE_LIVE_LOGS: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/logs/realtime`
 };
-
 export interface LogsResponse {
 	logs: string;
 }
 
-function getLogs(params: { interval?: Interval } = {}) {
-	return axiosCfg.get<LogsResponse>(API.LOGS, { params });
+function getLogs(instanceId: string, params: { interval?: Interval } = {}) {
+	return axiosCfg.get<LogsResponse>(API.LOGS(instanceId), { params });
 }
 
 function getServiceLogs(
+	instanceId: string,
 	projectId: string,
 	serviceId: string,
 	params: { interval?: Interval } = {}
 ) {
-	return axiosCfg.get<LogsResponse>(API.SERVICE_LOGS(projectId, serviceId), { params });
+	return axiosCfg.get<LogsResponse>(API.SERVICE_LOGS(instanceId, projectId, serviceId), { params });
 }
 
-function getLogsRealtimeWS(onMessage: (data: LogsResponse) => void) {
-	const ws = new WebSocket(`wss://${BASE_URL}/${API.LIVE_LOGS}`);
+function getLogsRealtimeWS(instanceId: string, onMessage: (data: LogsResponse) => void) {
+	const ws = new WebSocket(`wss://${BASE_URL}/${API.LIVE_LOGS(instanceId)}`);
 
 	ws.onmessage = (event) => {
 		const data: LogsResponse = JSON.parse(event.data);
@@ -39,11 +40,14 @@ function getLogsRealtimeWS(onMessage: (data: LogsResponse) => void) {
 }
 
 function getServiceLogsRealtimeWS(
+	instanceId: string,
 	projectId: string,
 	serviceId: string,
 	onMessage: (data: LogsResponse) => void
 ) {
-	const ws = new WebSocket(`wss://${BASE_URL}/${API.SERVICE_LIVE_LOGS(projectId, serviceId)}`);
+	const ws = new WebSocket(
+		`wss://${BASE_URL}/${API.SERVICE_LIVE_LOGS(instanceId, projectId, serviceId)}`
+	);
 
 	ws.onmessage = (event) => {
 		const data: LogsResponse = JSON.parse(event.data);

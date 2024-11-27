@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 	import { formatBytes } from './utils/formatData';
 	import ChartSkeleton from '../../lib/components/Skeleton.svelte';
+	import { selectedInstanceId } from '../../stores/instanceStore';
 
 	let currentPeriod = '1h' as Interval;
 	let cpuUsage = [] as number[];
@@ -42,9 +43,12 @@
 	}
 
 	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
-	$: queryChart = useChartStatistics({
-		interval: currentPeriod
-	});
+	$: queryChart = $selectedInstanceId
+		? useChartStatistics($selectedInstanceId, {
+				interval: currentPeriod
+			})
+		: null;
+
 	$: if ($queryChart?.data?.chart) {
 		const { chart, values } = $queryChart.data;
 		timestamps = chart.map((item) => item.timestamp);
@@ -56,10 +60,13 @@
 		isLoading = false;
 	}
 
-	onMount(() => {
+	$: if (column) {
 		updateColumnWidth();
-		window.addEventListener('resize', updateColumnWidth);
+	}
 
+	onMount(() => {
+		window.addEventListener('resize', updateColumnWidth);
+		updateColumnWidth();
 		return () => {
 			window.removeEventListener('resize', updateColumnWidth);
 		};
@@ -67,7 +74,9 @@
 </script>
 
 <div class="h-full overflow-auto pb-4">
-	<div class="bg-card mx-auto flex h-full max-w-screen-lg flex-col rounded-md border p-6 pt-10">
+	<div
+		class="bg-card mx-auto flex h-fit min-h-full max-w-screen-lg flex-col rounded-md border p-6 pt-10"
+	>
 		<div class="mb-5 flex justify-between">
 			<div>
 				<h3 class="mb-1 text-xl font-medium">Statistics</h3>
@@ -92,7 +101,7 @@
 					{#if isLoading}
 						<ChartSkeleton />
 					{:else if cpuUsage.length > 0}
-						{#key `${timestamps.join(',')}-${cpuUsage.join(',')}-${columnWidth}`}
+						{#key `${currentPeriod}-${columnWidth}`}
 							<Chart
 								{timestamps}
 								data={cpuUsage}
@@ -109,7 +118,7 @@
 					{#if isLoading}
 						<ChartSkeleton />
 					{:else if memoryUsage.length > 0}
-						{#key `${timestamps.join(',')}-${memoryUsage.join(',')}-${columnWidth}`}
+						{#key `${currentPeriod}-${columnWidth}`}
 							<Chart
 								{timestamps}
 								data={memoryUsage}
@@ -127,7 +136,7 @@
 					{#if isLoading}
 						<ChartSkeleton />
 					{:else if diskUsage.length > 0}
-						{#key `${timestamps.join(',')}-${diskUsage.join(',')}-${columnWidth}`}
+						{#key `${currentPeriod}-${columnWidth}`}
 							<Chart
 								{timestamps}
 								data={diskUsage}

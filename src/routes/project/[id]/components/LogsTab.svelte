@@ -6,6 +6,7 @@
 	import type { LogsResponse } from '../../../../api/logs';
 	import Logs from '$lib/components/Logs.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
+	import { selectedInstanceId } from '../../../../stores/instanceStore';
 
 	export let projectId: string;
 	export let serviceId: string;
@@ -31,7 +32,9 @@
 	}
 
 	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
-	$: queryLogs = useServiceLogs(projectId, serviceId, { interval: currentPeriod });
+	$: queryLogs = $selectedInstanceId
+		? useServiceLogs($selectedInstanceId, projectId, serviceId, { interval: currentPeriod })
+		: null;
 
 	$: if ($queryLogs?.data) {
 		logs = $queryLogs.data.logs;
@@ -70,6 +73,6 @@
 	{#if isLoading}
 		<Skeleton height={500} />
 	{:else if validLogs}
-		<Logs {parsedLogs} type='service' />
+		<Logs {parsedLogs} type="service" />
 	{/if}
 </div>

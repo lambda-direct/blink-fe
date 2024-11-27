@@ -17,6 +17,7 @@
 	import LogsTab from './components/LogsTab.svelte';
 	import MetricsTab from './components/MetricsTab.svelte';
 	import MountsTab from './components/MountsTab.svelte';
+	import { selectedInstanceId } from '../../../stores/instanceStore';
 
 	let services: GetServicesResponse['services'] = [];
 	let service: GetServiceResponse | null = null;
@@ -25,8 +26,11 @@
 	let projectId = $page.params.id;
 	let activeTab: Tab = 'settings';
 
-	$: queryServices = useServices(projectId);
-	$: queryServiceDetails = selectedServiceId ? useService(projectId, selectedServiceId) : null;
+	$: queryServices = $selectedInstanceId ? useServices($selectedInstanceId, projectId) : null;
+	$: queryServiceDetails =
+		$selectedInstanceId && selectedServiceId
+			? useService($selectedInstanceId, projectId, selectedServiceId)
+			: null;
 	$: activeTab = selectedMountId ? 'mounts' : 'settings';
 
 	$: {
@@ -36,10 +40,10 @@
 	}
 
 	$: {
-		if ($queryServices.isError) {
+		if ($queryServices?.isError) {
 			// applyAction({ type: 'error', error: { status: 400, message: 'Failed to load services' } });
 			console.log('error');
-		} else if ($queryServices.data) {
+		} else if ($queryServices?.data) {
 			services = $queryServices.data;
 
 			if (services.length === 0) {

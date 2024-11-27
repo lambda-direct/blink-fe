@@ -2,15 +2,15 @@ import axiosCfg from '../config';
 const BASE_URL = import.meta.env.VITE_BASE_API_URL;
 
 const API = {
-	CHART: 'resourceUsage/chart',
-	LIVE_CHART: 'resourceUsage/realtime',
-	SERVICE_LIVE_CHART: (projectId: string, serviceId: string) =>
-		`projects/${projectId}/services/${serviceId}/resourceUsage/realtime`,
-	SERVICE_HTTP_CHART: (projectId: string, serviceId: string) =>
-		`/projects/${projectId}/services/${serviceId}/httpStats/chart`
+	CHART: 'instances/:instanceId/resourceUsage/chart',
+	LIVE_CHART: 'instances/:instanceId/resourceUsage/realtime',
+	SERVICE_LIVE_CHART: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/resourceUsage/realtime`,
+	SERVICE_HTTP_CHART: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/httpStats/chart`
 };
 
-interface StatisticsResponse {
+export interface StatisticsResponse {
 	chart: StatisticsChart[];
 	values: {
 		totalFileSystem: number;
@@ -45,22 +45,31 @@ interface ServiceHttpStatsResponse {
 
 export type Interval = '1h' | '1d' | '7d' | '30d';
 
-function getChartStatistics(params: { interval?: Interval } = {}) {
-	return axiosCfg.get<StatisticsResponse>(API.CHART, { params });
+function getChartStatistics(instanceId: string, params: { interval?: Interval } = {}) {
+	return axiosCfg.get<StatisticsResponse>(API.CHART.replace(':instanceId', instanceId), { params });
 }
 
-function getHttpStats(projectId: string, serviceId: string, params: { interval?: Interval } = {}) {
-	return axiosCfg.get<ServiceHttpStatsResponse>(API.SERVICE_HTTP_CHART(projectId, serviceId), {
-		params
-	});
+function getHttpStats(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	params: { interval?: Interval } = {}
+) {
+	return axiosCfg.get<ServiceHttpStatsResponse>(
+		API.SERVICE_HTTP_CHART(instanceId, projectId, serviceId),
+		{ params }
+	);
 }
 
 function getServiceResourceUsageWS(
+	instanceId: string,
 	projectId: string,
 	serviceId: string,
 	onMessage: (data: GetServiceResourceUsage) => void
 ) {
-	const ws = new WebSocket(`wss://${BASE_URL}/${API.SERVICE_LIVE_CHART(projectId, serviceId)}`);
+	const ws = new WebSocket(
+		`wss://${BASE_URL}/${API.SERVICE_LIVE_CHART(instanceId, projectId, serviceId)}`
+	);
 
 	ws.onmessage = (event) => {
 		const data: GetServiceResourceUsage = JSON.parse(event.data);
@@ -70,8 +79,10 @@ function getServiceResourceUsageWS(
 	return ws;
 }
 
-function getLiveStatisticsWS(onMessage: (data: StatisticsResponse) => void) {
-	const ws = new WebSocket(`wss://${BASE_URL}/${API.LIVE_CHART}`);
+function getLiveStatisticsWS(instanceId: string, onMessage: (data: StatisticsResponse) => void) {
+	const ws = new WebSocket(
+		`wss://${BASE_URL}/${API.LIVE_CHART.replace(':instanceId', instanceId)}`
+	);
 
 	ws.onmessage = (event) => {
 		const data: StatisticsResponse = JSON.parse(event.data);
@@ -80,5 +91,4 @@ function getLiveStatisticsWS(onMessage: (data: StatisticsResponse) => void) {
 
 	return ws;
 }
-
 export { getChartStatistics, getLiveStatisticsWS, getHttpStats, getServiceResourceUsageWS };
