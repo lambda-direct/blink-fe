@@ -50,8 +50,6 @@
 		</button>
 	{/if}
 </div>
-<div
-	class="scrollbar scrollbar-track-card scrollbar-thumb-[#33323e] h-full max-h-[75vh] overflow-y-auto px-12 py-8"
->
+<div class="h-full overflow-y-auto overflow-x-hidden px-12 py-4">
 	<slot />
 </div>

@@ -70,9 +70,11 @@
 			</Select.Content>
 		</Select.Root>
 	</div>
-	{#if isLoading}
-		<Skeleton height={500} />
-	{:else if validLogs}
-		<Logs {parsedLogs} type="service" />
-	{/if}
+	<div class="h-2/3">
+		{#if isLoading}
+			<Skeleton />
+		{:else if validLogs}
+			<Logs {parsedLogs} type="service" />
+		{/if}
+	</div>
 </div>

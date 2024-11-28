@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, ChevronDown, LogOut, Pencil } from 'lucide-svelte';
+	import { Check, ChevronDown, CircleAlert, LogOut, Pencil } from 'lucide-svelte';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Select from '$lib/components/ui/select';
@@ -24,6 +24,9 @@
 	let user: UserResponse['user'] | null = null;
 	let isAuthenticated = false;
 	let projectId: string | null = null;
+	let showInvalidNameError: boolean = false;
+	let errorTimeout: ReturnType<typeof setTimeout>;
+	let renameInput: HTMLInputElement | null = null;
 
 	if (typeof window !== 'undefined') {
 		isAuthenticated = !!localStorage.getItem('accessToken');
@@ -61,11 +64,28 @@
 	function handleCancelEdit() {
 		isEditing = false;
 		editItemName = '';
+		clearTimeout(errorTimeout);
+	}
+
+	function validateName(name: string) {
+		const regex = /^[a-zA-Z0-9]+([a-zA-Z0-9_-])*$/;
+		return regex.test(name);
 	}
 
 	async function handleUpdateItem() {
 		const newItemName = editItemName.trim().replace(/\s+/g, ' ');
-		if (newItemName && selectedInstanceId) {
+
+		if (!validateName(newItemName)) {
+			showInvalidNameError = true;
+			clearTimeout(errorTimeout);
+			errorTimeout = setTimeout(() => {
+				showInvalidNameError = false;
+			}, 3000);
+			return;
+		}
+
+		showInvalidNameError = false;
+		if (newItemName != selectedInstance?.name && selectedInstanceId) {
 			const data: RequestBody = { name: newItemName };
 			try {
 				await patchInstanceById(selectedInstanceId, data);
@@ -75,10 +95,9 @@
 				}
 			} catch (error) {
 				console.error(error);
-			} finally {
-				handleCancelEdit();
 			}
 		}
+		handleCancelEdit();
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
@@ -127,6 +146,9 @@
 	}
 
 	$: currentPath = $page.url.pathname;
+	$: if (isEditing && renameInput) {
+		renameInput.focus();
+	}
 
 	onMount(async () => {
 		if (isAuthenticated) {
@@ -181,7 +203,7 @@
 							<ChevronDown class="h-5 w-5 text-gray-600" />
 						</DropdownMenu.Trigger>
 
-						<DropdownMenu.Content class="w-fit min-w-52 mt-2">
+						<DropdownMenu.Content class="mt-2 w-fit min-w-52">
 							{#each instances as instance}
 								<DropdownMenu.Item
 									on:click={() => handleSelectInstance(instance.id)}
@@ -201,18 +223,24 @@
 							<DropdownMenu.DropdownMenuSeparator />
 
 							{#if isEditing}
-								<DropdownMenu.Item class="bg-accent relative text-base">
-									<!-- svelte-ignore a11y-autofocus -->
+								<DropdownMenu.Item class="bg-accent relative flex flex-col text-base">
 									<input
-										id="renameInput"
 										type="text"
 										class="bg-accent placeholder-grey-400 w-full outline-none"
 										bind:value={editItemName}
-										on:focusout={() => document.getElementById('renameInput')?.focus()}
+										bind:this={renameInput}
+										on:focusout={() => renameInput?.focus()}
 										on:keydown={handleKeydown}
-										autofocus
 									/>
 								</DropdownMenu.Item>
+								{#if showInvalidNameError}
+									<DropdownMenu.Item
+										class="flex items-center justify-center gap-2 text-base text-neutral-400"
+									>
+										<CircleAlert class="h-4 w-4" />
+										<span>Invalid name</span>
+									</DropdownMenu.Item>
+								{/if}
 							{:else}
 								<DropdownMenu.Item
 									class="flex items-center gap-2 text-base"
@@ -248,7 +276,7 @@
 				{/if}
 			</div>
 			{#if user}
-				<div class="absolute right-6 -top-1 flex h-10 items-center">
+				<div class="absolute -top-1 right-6 flex h-10 items-center">
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger>
 							<Avatar.Root class="h-8 w-8">

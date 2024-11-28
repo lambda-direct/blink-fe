@@ -99,7 +99,7 @@
 					<h5>CPU Usage</h5>
 					<p class="text-sm text-neutral-400">Total: 100%</p>
 					{#if isLoading}
-						<ChartSkeleton />
+						<ChartSkeleton height="300px" />
 					{:else if cpuUsage.length > 0}
 						{#key `${currentPeriod}-${columnWidth}`}
 							<Chart
@@ -116,7 +116,7 @@
 					<h5>Memory Usage</h5>
 					<p class="text-sm text-neutral-400">Total: {formatBytes(totalMemory)}</p>
 					{#if isLoading}
-						<ChartSkeleton />
+						<ChartSkeleton height="300px" />
 					{:else if memoryUsage.length > 0}
 						{#key `${currentPeriod}-${columnWidth}`}
 							<Chart
@@ -134,7 +134,7 @@
 					<h5>Disk Usage</h5>
 					<p class="text-sm text-neutral-400">Total: {formatBytes(totalFileSystem)}</p>
 					{#if isLoading}
-						<ChartSkeleton />
+						<ChartSkeleton height="300px" />
 					{:else if diskUsage.length > 0}
 						{#key `${currentPeriod}-${columnWidth}`}
 							<Chart

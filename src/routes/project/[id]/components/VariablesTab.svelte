@@ -51,7 +51,7 @@
 	}
 </script>
 
-<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-4 pt-4">
 	<h2 class="text-xl font-medium text-neutral-400">
 		{variables.length} Environment
 		{variables.length === 1 ? 'Variable' : 'Variables'}

@@ -44,7 +44,7 @@
 </script>
 
 <div
-	class="bg-accent relative flex h-fit w-full flex-col overflow-hidden rounded-lg border text-sm"
+	class="bg-accent relative flex h-full w-full flex-col overflow-hidden rounded-lg border text-sm"
 >
 	{#if parsedLogs.some((log) => log.timestamp)}
 		<div class="absolute right-4 top-4 text-neutral-400 hover:text-white">
@@ -71,7 +71,7 @@
 			<div class="{type === 'general' ? 'w-5/6' : 'w-4/5'} p-2">Message</div>
 		</div>
 		<div
-			class="bg-accent scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] flex h-full max-h-[50vh] w-full flex-col overflow-y-auto overflow-x-hidden rounded-b-lg px-2 pb-2"
+			class="bg-accent scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] flex h-full w-full flex-col overflow-y-auto overflow-x-hidden rounded-b-lg px-2 pb-2"
 			bind:this={scrollContainer}
 		>
 			{#each parsedLogs as log, i}
@@ -84,7 +84,11 @@
 					role="listitem"
 				>
 					{#if showDateColumn}
-						<div class="mr-4 {type === 'general' ? 'w-1/6' : 'w-1/5'} whitespace-normal break-words p-2 text-left text-neutral-400">
+						<div
+							class="mr-4 {type === 'general'
+								? 'w-1/6'
+								: 'w-1/5'} whitespace-normal break-words p-2 text-left text-neutral-400"
+						>
 							{#if log.timestamp}
 								<span
 									>{format(new Date(log.timestamp), 'MMM ')}
@@ -96,7 +100,11 @@
 							{/if}
 						</div>
 					{/if}
-					<div class="{type === 'general' ? 'w-5/6' : 'w-4/5'} whitespace-normal break-words p-2 text-left">
+					<div
+						class="{type === 'general'
+							? 'w-5/6'
+							: 'w-4/5'} whitespace-normal break-words p-2 text-left"
+					>
 						{log.message}
 					</div>
 				</div>

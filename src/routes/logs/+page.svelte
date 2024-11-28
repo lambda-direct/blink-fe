@@ -53,7 +53,7 @@
 
 <div class="h-full overflow-hidden pb-4">
 	<div
-		class="bg-card mx-auto flex h-full min-h-[50vh] w-full max-w-screen-lg flex-col overflow-hidden rounded-lg border p-6 pt-10"
+		class="bg-card mx-auto flex h-full w-full max-w-screen-lg flex-col overflow-hidden rounded-lg border p-6 pt-10"
 	>
 		<div class="mb-2 flex items-end justify-between border-b pb-2">
 			<h2 class="text-xl font-medium">
@@ -74,10 +74,12 @@
 				</Select.Content>
 			</Select.Root>
 		</div>
-		{#if isLoading}
-			<Skeleton height={450} />
-		{:else if validLogs}
-			<Logs {parsedLogs} type="general" />
-		{/if}
+		<div class="h-2/3">
+			{#if isLoading}
+				<Skeleton />
+			{:else if validLogs}
+				<Logs {parsedLogs} type="general" />
+			{/if}
+		</div>
 	</div>
 </div>

@@ -11,7 +11,7 @@
 	} = service;
 </script>
 
-<div class="flex flex-col gap-10 mb-4">
+<div class="flex flex-col gap-10 pt-4">
 	<div class="flex flex-col gap-6">
 		<div class="flex items-center gap-6 text-neutral-400">
 			<CircleIcon icon={Code} />
@@ -34,7 +34,7 @@
 					<div class="flex flex-row items-center gap-2 text-neutral-400">
 						<Globe class="h-4 w-4" />
 						<span>Domain:</span>
-						<span class="text-white hover:underline cursor-pointer">{name}</span>
+						<span class="cursor-pointer text-white hover:underline">{name}</span>
 					</div>
 					{#if isTlsEnabled !== undefined}
 						<div>

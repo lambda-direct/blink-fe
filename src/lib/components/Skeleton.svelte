@@ -1,8 +1,8 @@
 <script lang="ts">
-	export let height: number = 300;
+	export let height: number | string = '100%';
 </script>
 
-<div class="skeleton-loader" style="height: {height}px;"></div>
+<div class="skeleton-loader" style="height: {height};"></div>
 
 <style>
 	.skeleton-loader {

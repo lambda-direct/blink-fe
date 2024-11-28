@@ -155,7 +155,7 @@
 	<div class="grid grid-cols-1 gap-10 xl:grid-cols-1">
 		<div bind:this={column} class="flex flex-col">
 			{#if isLoading}
-				<Skeleton height={325} />
+				<Skeleton height="325px" />
 			{:else if validResponseTimes}
 				<h5>HTTP Average Response Time</h5>
 				{#key `${timestamps.join(',')}-${responseTimes.join(',')}-${columnWidth}`}
@@ -171,7 +171,7 @@
 		</div>
 		<div class="mb-5 flex flex-col">
 			{#if isLoading}
-				<Skeleton height={325} />
+				<Skeleton height="325px" />
 			{:else if validStatusCodes}
 				{#key `${timestamps.join(',')}-${currentStatusCodeCounts.join(',')}-${columnWidth}`}
 					<div class="flex items-center justify-between">

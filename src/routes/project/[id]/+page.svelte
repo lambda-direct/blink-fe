@@ -72,9 +72,9 @@
 	}
 </script>
 
-<div class="relative flex min-h-[90vh] items-center justify-center">
+<div class="relative flex h-full items-start justify-center overflow-y-auto pb-4">
 	<div
-		class="dynamic-transform flex max-w-2xl flex-1 flex-wrap justify-center gap-10 transition-transform duration-300 ease-out"
+		class="my-auto flex max-w-2xl flex-grow flex-wrap justify-center gap-10 transition-transform duration-300 ease-out"
 		class:max-[1344px]:flex-col={selectedServiceId}
 		style={selectedServiceId ? `transform: translateX(var(--transform-x, 0))` : ''}
 	>
@@ -89,9 +89,9 @@
 	</div>
 	{#if selectedServiceId && service}
 		<div
-			class="bg-card absolute right-0 top-0 flex h-full min-h-[90vh] w-full flex-col overflow-hidden rounded-lg border transition-transform duration-300 ease-out lg:w-1/2"
+			class="bg-card fixed right-0 top-[74px] flex h-[calc(100%-91px)] w-full flex-col overflow-hidden rounded-lg border transition-transform duration-300 ease-out lg:w-1/2"
 		>
-			<div class="flex flex-col">
+			<div class="flex h-full flex-col">
 				<div class="mb-5 flex w-full items-center justify-between px-12 pt-12">
 					<span class="overflow-hidden text-ellipsis text-nowrap text-3xl">
 						{service.service.name}</span
