@@ -24,7 +24,8 @@ export const useInstanceById = (instanceId: string) => {
 			const response = await getInstanceById(instanceId);
 			return response.data;
 		},
-		enabled: !!instanceId
+		enabled: !!instanceId,
+		retry: false, 
 	});
 };
 

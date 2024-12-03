@@ -12,7 +12,7 @@
 </script>
 
 <button
-	class="bg-accent flex h-full min-h-44 cursor-pointer flex-col justify-between rounded-lg p-4 hover:bg-[#33323e]"
+	class="bg-accent flex h-full min-h-44 w-[330px] cursor-pointer flex-col justify-between overflow-hidden rounded-lg p-4 hover:bg-[#33323e]"
 	on:click={handleGoToProject}
 	type="button"
 	aria-label={`Open project: ${project.name}`}

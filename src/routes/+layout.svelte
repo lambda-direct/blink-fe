@@ -52,7 +52,7 @@
 	<div class="app font-poppins min-h-screen text-neutral-50">
 		<Header />
 		{#if !isLoading}
-			<main class="{isAuthenticated ? 'h-[calc(100vh-40px-17px*2)]' : ''} overflow-hidden">
+			<main class="{isAuthenticated ? 'h-[calc(100vh-80px-17px*2)] lg:h-[calc(100vh-40px-17px*2)]' : ''} overflow-hidden">
 				<slot></slot>
 			</main>
 		{/if}

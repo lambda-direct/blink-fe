@@ -13,7 +13,8 @@ export const useLogs = (instanceId: string, params: { interval?: Interval } = {}
 			return response.data;
 		},
 		refetchInterval,
-		enabled: !!instanceId
+		retry: false, 
+		enabled: !!instanceId,
 	});
 };
 
@@ -32,6 +33,7 @@ export const useServiceLogs = (
 			return response.data;
 		},
 		refetchInterval,
+		retry: false, 
 		enabled: !!instanceId
 	});
 };

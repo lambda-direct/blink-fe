@@ -32,7 +32,6 @@
 		if (!option) return;
 		if (option.value !== currentPeriod) {
 			currentPeriod = option.value as Interval;
-			isLoading = true;
 		}
 	}
 
@@ -49,15 +48,30 @@
 			})
 		: null;
 
-	$: if ($queryChart?.data?.chart) {
-		const { chart, values } = $queryChart.data;
-		timestamps = chart.map((item) => item.timestamp);
-		cpuUsage = chart.map((item) => item.averageCpuLoad || 0);
-		memoryUsage = chart.map((item) => item.usedMemory || 0);
-		diskUsage = chart.map((item) => item.usedFileSystem || 0);
-		totalFileSystem = values.totalFileSystem;
-		totalMemory = values.totalMemory;
-		isLoading = false;
+	$: {
+		if ($queryChart) {
+			isLoading = $queryChart.isFetching;
+
+			if (!$queryChart.isError && $queryChart.data?.chart) {
+				const { chart, values } = $queryChart.data;
+				timestamps = chart.map((item) => item.timestamp);
+				cpuUsage = chart.map((item) => item.averageCpuLoad || 0);
+				memoryUsage = chart.map((item) => item.usedMemory || 0);
+				diskUsage = chart.map((item) => item.usedFileSystem || 0);
+				totalFileSystem = values.totalFileSystem;
+				totalMemory = values.totalMemory;
+				isLoading = false;
+			} else {
+				timestamps = [];
+				cpuUsage = [];
+				memoryUsage = [];
+				diskUsage = [];
+				totalFileSystem = 0;
+				totalMemory = 0;
+			}
+		} else {
+			isLoading = false;
+		}
 	}
 
 	$: if (column) {
@@ -93,7 +107,7 @@
 				</Select.Content>
 			</Select.Root>
 		</div>
-		{#if timestamps.length}
+		{#if isLoading || timestamps.length}
 			<div class="grid grid-cols-1 gap-5 xl:grid-cols-1">
 				<div bind:this={column} class="flex flex-col">
 					<h5>CPU Usage</h5>

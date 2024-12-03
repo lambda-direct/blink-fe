@@ -21,6 +21,7 @@ export const useProjects = (instanceId: string, fetchServicesCount = false) => {
 
 			return { projects, servicesCountMap };
 		},
-		enabled: !!instanceId
+		enabled: !!instanceId,
+		retry: false, 
 	});
 };

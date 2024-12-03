@@ -20,10 +20,16 @@
 	$: queryService = $selectedInstanceId
 		? useService($selectedInstanceId, projectId, serviceId)
 		: null;
+
 	$: {
-		if ($queryService?.data) {
-			data = $queryService.data;
-			service = data.service;
+		if ($queryService) {
+			if ($queryService.data) {
+				data = $queryService.data;
+				service = data.service;
+			} else if ($queryService.isError) {
+				data = null;
+				service = null;
+			}
 		}
 	}
 </script>

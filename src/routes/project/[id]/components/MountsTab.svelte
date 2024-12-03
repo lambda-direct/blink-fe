@@ -13,14 +13,14 @@
 		</div>
 		{#each mounts as mount}
 			{#if mount.sourcePath}
-				<div class="ml-16 flex flex-col gap-4 overflow-x-auto text-sm">
+				<div class="ml-16 flex flex-col gap-4 overflow-x-auto text-nowrap text-sm">
 					<p class="text-neutral-400">Source Path</p>
 					<div class="h-fit min-h-14 rounded-lg border p-5">{mount.sourcePath}</div>
 				</div>
 			{/if}
 
 			{#if mount.destinationPath}
-				<div class="ml-16 flex flex-col gap-4 overflow-x-auto text-sm">
+				<div class="overflow-x-autotext-nowrap ml-16 flex flex-col gap-4 text-sm">
 					<p class="text-neutral-400">Destination Path</p>
 					<div class="h-fit min-h-14 rounded-lg border p-5">{mount.destinationPath}</div>
 				</div>

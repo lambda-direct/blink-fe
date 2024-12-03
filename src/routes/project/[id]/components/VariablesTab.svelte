@@ -64,7 +64,7 @@
 				<span class="truncate">{name}</span>
 			</div>
 			<div
-				class="group/value group-hover/item:bg-accent flex h-9 w-full items-center justify-between gap-2 overflow-hidden rounded-lg border px-6 text-sm"
+				class="group-hover/item:bg-accent flex h-9 w-full items-center justify-between gap-2 overflow-hidden rounded-lg border px-6 text-sm"
 			>
 				<div class="truncate">
 					{#if $showValueMap.get(id)}
@@ -73,7 +73,7 @@
 						<span>*****</span>
 					{/if}
 				</div>
-				<div class="flex gap-1 text-neutral-400 opacity-0 group-hover/value:opacity-100">
+				<div class="hidden gap-1 text-neutral-400 group-hover/item:flex">
 					<button class="p-1" on:click={() => toggleShowValue(id)} aria-label="show value">
 						{#if $showValueMap.get(id)}
 							<Eye class="h-4 w-4" />

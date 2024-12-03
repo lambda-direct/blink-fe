@@ -14,9 +14,9 @@
 	import { useInstances } from '../queries/instances';
 	import { setInstanceId } from '../stores/instanceStore';
 	import { patchInstanceById } from '../api/instance';
+	import { selectedInstanceId } from '../stores/instanceStore';
 
 	let instances: Response['instances'] = [];
-	let selectedInstanceId: string | null = null;
 	let isEditing: boolean = false;
 	let editItemName: string = '';
 	let selectedProjectId: Selected<string>;
@@ -31,26 +31,37 @@
 	if (typeof window !== 'undefined') {
 		isAuthenticated = !!localStorage.getItem('accessToken');
 	}
+	$: currentPath = $page.url.pathname;
+	$: isProjectsRoute = currentPath.startsWith('/project');
 
 	$: queryInstances = useInstances();
-	$: selectedInstance = instances.find((instance) => instance.id === selectedInstanceId);
 	$: if ($queryInstances.data) {
-		instances = $queryInstances.data.instances;
-		if (instances.length > 0) {
-			const selectedInstance = instances.reduce((prev, curr) => {
+		instances = $queryInstances.data.instances.sort((a, b) => {
+			const dateA = a.lastLoginAt || 0;
+			const dateB = b.lastLoginAt || 0;
+			return dateB - dateA;
+		});
+
+		if (!$selectedInstanceId && instances.length > 0) {
+			const lastInstance = instances.reduce((prev, curr) => {
 				if (curr.lastLoginAt && (!prev.lastLoginAt || curr.lastLoginAt > prev.lastLoginAt)) {
 					return curr;
 				}
 				return prev;
 			}, instances[0]);
 
-			selectedInstanceId = selectedInstance.id;
-			setInstanceId(selectedInstanceId);
+			setInstanceId(lastInstance.id);
 		}
 	}
 
+	$: selectedInstance = $selectedInstanceId
+		? instances.find((instance) => instance.id === $selectedInstanceId)
+		: null;
+
 	function handleSelectInstance(id: string) {
-		selectedInstanceId = id;
+		if (isProjectsRoute) {
+			goto('/dashboard');
+		}
 		setInstanceId(id);
 	}
 
@@ -85,11 +96,13 @@
 		}
 
 		showInvalidNameError = false;
-		if (newItemName != selectedInstance?.name && selectedInstanceId) {
+		if (selectedInstance && newItemName !== selectedInstance.name) {
 			const data: RequestBody = { name: newItemName };
 			try {
-				await patchInstanceById(selectedInstanceId, data);
-				const instanceIndex = instances.findIndex((instance) => instance.id === selectedInstanceId);
+				await patchInstanceById(selectedInstance.id, data);
+				const instanceIndex = instances.findIndex(
+					(instance) => instance.id === selectedInstance.id
+				);
 				if (instanceIndex !== -1) {
 					instances[instanceIndex] = { ...instances[instanceIndex], name: newItemName };
 				}
@@ -110,20 +123,21 @@
 		}
 	}
 
-	$: queryProjects = selectedInstanceId ? useProjects(selectedInstanceId, true) : null;
+	$: queryProjects = $selectedInstanceId ? useProjects($selectedInstanceId, true) : null;
 	$: {
 		if ($queryProjects?.data) {
 			projects = $queryProjects.data.projects;
 		}
 	}
 	$: {
-		if ($page.url.pathname.startsWith('/project/') && $page.params.id) {
+		if (isProjectsRoute && $page.params.id) {
 			projectId = $page.params.id;
 			selectedProjectId = { value: projectId };
 		} else {
 			projectId = null;
 		}
 	}
+	$: validProject = projects.some((project) => project.id === projectId);
 
 	function getInitials(name: string): string {
 		return name.charAt(0).toUpperCase();
@@ -145,7 +159,6 @@
 		}
 	}
 
-	$: currentPath = $page.url.pathname;
 	$: if (isEditing && renameInput) {
 		renameInput.focus();
 	}
@@ -164,8 +177,8 @@
 
 <header class="mx-auto grid items-center py-4">
 	{#if isAuthenticated}
-		<nav class="relative w-full border-b">
-			<div class="mx-auto flex max-w-screen-lg items-center justify-end">
+		<nav class="relative w-full border-b sm:px-14">
+			<div class="mx-auto mt-10 flex min-h-10 max-w-screen-lg items-center justify-end lg:mt-0">
 				<a
 					href="/dashboard"
 					class="relative h-10 px-4 py-2 font-medium transition-colors hover:text-white {currentPath ===
@@ -194,29 +207,35 @@
 					Logs
 				</a>
 			</div>
-			<div class="absolute left-24 top-0 flex h-10 items-center gap-1">
+			<div class="absolute left-2 top-0 flex h-10 items-center gap-1 lg:left-20">
 				{#if selectedInstance}
 					<span class="mr-2 text-gray-600">/</span>
 					<DropdownMenu.Root closeOnItemClick={false} onOutsideClick={handleCancelEdit}>
-						<DropdownMenu.Trigger class="mx-auto flex items-center gap-2 outline-none">
-							{selectedInstance.name}
+						<DropdownMenu.Trigger
+							class="flex w-fit items-center gap-2 overflow-hidden text-ellipsis outline-none"
+							style="max-width: var(--custom-max-width);"
+						>
+							<span class="truncate">{selectedInstance.name}</span>
 							<ChevronDown class="h-5 w-5 text-gray-600" />
 						</DropdownMenu.Trigger>
 
-						<DropdownMenu.Content class="mt-2 w-fit min-w-52">
+						<DropdownMenu.Content
+							class="mt-2 w-fit sm:min-w-52"
+							style="max-width: var(--custom-max-width);"
+						>
 							{#each instances as instance}
 								<DropdownMenu.Item
 									on:click={() => handleSelectInstance(instance.id)}
-									class="flex items-center gap-2 text-base 
-					 text-gray-400 hover:text-white
-					  {instance.id === selectedInstanceId ? 'text-white' : ''}"
+									class="flex items-center gap-2 text-base
+					 text-neutral-400 hover:text-white
+					  {instance.id === $selectedInstanceId ? 'text-white' : ''}"
 								>
 									<div class="h-4 w-4">
-										{#if instance.id === selectedInstanceId}
+										{#if instance.id === $selectedInstanceId}
 											<Check class="h-4 w-4" />
 										{/if}
 									</div>
-									{instance.name}
+									<span class="truncate">{instance.name}</span>
 								</DropdownMenu.Item>
 							{/each}
 
@@ -231,6 +250,7 @@
 										bind:this={renameInput}
 										on:focusout={() => renameInput?.focus()}
 										on:keydown={handleKeydown}
+										spellcheck="false"
 									/>
 								</DropdownMenu.Item>
 								{#if showInvalidNameError}
@@ -250,33 +270,32 @@
 									Rename
 								</DropdownMenu.Item>
 							{/if}
-
-							<!-- <DropdownMenu.Item class="flex items-center gap-2 text-base" on:click={() => {}}>
-				<PlusCircle class="h-4 w-4" />
-				New VPS
-			</DropdownMenu.Item> -->
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
 				{/if}
-				{#if projectId}
+				{#if validProject}
 					<span class="text-gray-600">/</span>
 					<Select.Root selected={selectedProjectId} onSelectedChange={handleSelectProject}>
 						<Select.Trigger
-							class="flex w-fit min-w-48 items-center justify-start gap-2 border-none bg-transparent"
+							class="flex w-fit items-center justify-start gap-2 overflow-hidden text-ellipsis border-none bg-transparent sm:min-w-48"
+							style="max-width: var(--custom-max-width);"
 						>
-							{projects.find((project) => project.id === selectedProjectId.value)?.name || ''}
+							<span class="truncate"
+								>{projects.find((project) => project.id === selectedProjectId.value)?.name ||
+									''}</span
+							>
 						</Select.Trigger>
 
-						<Select.Content>
+						<Select.Content class="w-fit sm:min-w-48" style="max-width: var(--custom-max-width);">
 							{#each projects as project}
-								<Select.Item value={project.id}>{project.name}</Select.Item>
+								<Select.Item value={project.id} class="truncate">{project.name}</Select.Item>
 							{/each}
 						</Select.Content>
 					</Select.Root>
 				{/if}
 			</div>
 			{#if user}
-				<div class="absolute -top-1 right-6 flex h-10 items-center">
+				<div class="absolute -top-1 right-2 flex h-10 items-center sm:right-6">
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger>
 							<Avatar.Root class="h-8 w-8">
@@ -317,3 +336,25 @@
 		</nav>
 	{/if}
 </header>
+
+<style>
+	:root {
+		--custom-max-width: 200px;
+	}
+	@media (max-width: 500px) {
+		:root {
+			--custom-max-width: 125px;
+		}
+	}
+
+	@media (min-width: 768px) and (max-width: 1280px) {
+		:root {
+			--custom-max-width: 270px;
+		}
+	}
+	@media (min-width: 1281px) {
+		:root {
+			--custom-max-width: 350px;
+		}
+	}
+</style>

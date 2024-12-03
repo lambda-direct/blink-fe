@@ -24,7 +24,8 @@ export const useChartStatistics = (instanceId: string, params: { interval?: Inte
 			return { chart, values };
 		},
 		refetchInterval,
-		enabled: !!instanceId
+		enabled: !!instanceId,
+		retry: false
 	});
 };
 
@@ -44,6 +45,7 @@ export const useHttpStats = (
 			return { responseTimeChart, statusCodeCountChart };
 		},
 		refetchInterval,
-		enabled: !!instanceId
+		enabled: !!instanceId,
+		retry: false
 	});
 };

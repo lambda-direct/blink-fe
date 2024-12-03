@@ -17,9 +17,9 @@
 			<CircleIcon icon={Code} />
 			<h2 class="text-xl font-medium">Source</h2>
 		</div>
-		<div class="ml-16 flex flex-col gap-4 overflow-x-auto text-sm">
+		<div class="ml-16 flex flex-col gap-4 text-sm">
 			<p class="text-neutral-400">Image Name</p>
-			<div class="h-fit min-h-14 rounded-lg border p-5">{imageName}</div>
+			<div class="h-fit min-h-14 overflow-x-auto rounded-lg border p-5">{imageName}</div>
 		</div>
 	</div>
 	{#if portMappings.length || domains.length}
@@ -29,7 +29,7 @@
 				<h2 class="text-xl font-medium">Networking</h2>
 			</div>
 			{#each domains as { name, isTlsEnabled }}<div
-					class="ml-16 flex h-fit min-h-14 items-center gap-8 rounded-lg border p-5 text-sm"
+					class="ml-16 flex h-fit min-h-14 items-center gap-8 overflow-x-auto text-nowrap rounded-lg border p-5 text-sm"
 				>
 					<div class="flex flex-row items-center gap-2 text-neutral-400">
 						<Globe class="h-4 w-4" />
@@ -45,7 +45,9 @@
 				</div>
 			{/each}
 			{#each portMappings as { protocol, hostAddress, hostPort, containerPort }}
-				<div class="ml-16 flex h-fit min-h-14 items-center gap-8 rounded-lg border p-5 text-sm">
+				<div
+					class="ml-16 flex h-fit min-h-14 items-center gap-8 overflow-x-auto text-nowrap rounded-lg border p-5 text-sm"
+				>
 					<div>
 						<span class="mr-2 text-neutral-400">Protocol:</span>
 						<span>{protocol}</span>
@@ -69,7 +71,7 @@
 			<CircleIcon icon={Cloud} />
 			<h2 class="text-xl font-medium">Deploy</h2>
 		</div>
-		<div class="ml-16 flex flex-col gap-4 text-sm">
+		<div class="ml-16 flex flex-col gap-4 overflow-x-auto text-nowrap text-sm">
 			<div class="flex gap-4">
 				<p class="text-neutral-400">Restart Policy:</p>
 				<p>unless-stopped</p>

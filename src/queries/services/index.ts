@@ -8,7 +8,8 @@ export const useServices = (instanceId: string, projectId: string) => {
 			const response = await getServices(instanceId, projectId);
 			return response.data.services;
 		},
-		enabled: !!instanceId
+		enabled: !!instanceId,
+		retry: false
 	});
 };
 
@@ -19,6 +20,7 @@ export const useService = (instanceId: string, projectId: string, serviceId: str
 			const response = await getService(instanceId, projectId, serviceId);
 			return response.data;
 		},
-		enabled: !!instanceId
+		enabled: !!instanceId,
+		retry: false
 	});
 };

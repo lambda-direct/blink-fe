@@ -54,7 +54,6 @@
 			colorsMap = {};
 			validResponseTimes = false;
 			validStatusCodes = false;
-			isLoading = true;
 		}
 	}
 
@@ -84,32 +83,50 @@
 	$: queryChart = $selectedInstanceId
 		? useHttpStats($selectedInstanceId, projectId, serviceId, { interval: currentPeriod })
 		: null;
-	$: if ($queryChart?.data?.responseTimeChart) {
-		timestamps = $queryChart.data.responseTimeChart.map((item) => item.timestamp);
-		responseTimes = $queryChart.data.responseTimeChart.map((item) => item.averageResponseTime);
-		validResponseTimes = responseTimes.some((item) => item > 0);
-		isLoading = false;
-	}
-	$: if ($queryChart?.data?.statusCodeCountChart) {
-		statusCodeCounts = $queryChart.data.statusCodeCountChart.map((entry) => {
-			const statusCounts: { [key: string]: number } = {};
 
-			for (const [statusCode, count] of Object.entries(entry.statusCodeCounts)) {
-				statusCounts[statusCode] = count;
-				if (count > 0) validStatusCodes = true;
-				if (!(statusCode in colorsMap)) {
-					const color =
-						Object.keys(colorsMap).length < colors.length
-							? colors[Object.keys(colorsMap).length]
-							: getRandomColor();
-					colorsMap[statusCode] = color;
+	$: {
+		if ($queryChart) {
+			isLoading = $queryChart.isFetching;
+
+			if ($queryChart.data) {
+				if ($queryChart.data.responseTimeChart) {
+					timestamps = $queryChart.data.responseTimeChart.map((item) => item.timestamp);
+					responseTimes = $queryChart.data.responseTimeChart.map(
+						(item) => item.averageResponseTime
+					);
+					validResponseTimes = responseTimes.some((item) => item > 0);
+				}
+
+				if ($queryChart.data.statusCodeCountChart) {
+					statusCodeCounts = $queryChart.data.statusCodeCountChart.map((entry) => {
+						const statusCounts: { [key: string]: number } = {};
+						for (const [statusCode, count] of Object.entries(entry.statusCodeCounts)) {
+							statusCounts[statusCode] = count;
+							if (count > 0) validStatusCodes = true;
+
+							if (!(statusCode in colorsMap)) {
+								const color =
+									Object.keys(colorsMap).length < colors.length
+										? colors[Object.keys(colorsMap).length]
+										: getRandomColor();
+								colorsMap[statusCode] = color;
+							}
+						}
+						return statusCounts;
+					});
+					setDefaultStatusCode();
 				}
 			}
-			return statusCounts;
-		});
-		setDefaultStatusCode();
-		isLoading = false;
+		} else {
+			isLoading = false;
+			timestamps = [];
+			responseTimes = [];
+			statusCodeCounts = [];
+			validResponseTimes = false;
+			validStatusCodes = false;
+		}
 	}
+
 	$: currentStatusCodeCounts = selectedStatusCode
 		? statusCodeCounts.map((entry) => {
 				const filteredEntry: { [key: string]: number } = {};

@@ -12,7 +12,7 @@
 	export let parsedLogs: { timestamp: Date | null; message: string }[] = [];
 	export let type: 'general' | 'service';
 
-	let hoveredLogIndex = -1;
+	let hoveredLogIndex = - 1;
 	let scrollContainer: HTMLDivElement | null = null;
 
 	let options = [{ label: 'Timestamp', checked: true }];
@@ -37,7 +37,7 @@
 	};
 
 	$: if (parsedLogs) {
-		hoveredLogIndex = parsedLogs.length - 1;
+		hoveredLogIndex = 0;
 		scrollToBottom();
 	}
 	$: showDateColumn = parsedLogs.some((log) => log.timestamp);
@@ -63,7 +63,7 @@
 			</DropdownMenu>
 		</div>
 	{/if}
-	<div class="flex w-full flex-col">
+	<div class="flex h-full w-full flex-col">
 		<div class="mb-1 flex rounded-t-lg bg-[#33323e] px-2 py-1">
 			{#if showDateColumn}
 				<div class="mr-4 {type === 'general' ? 'w-1/6' : 'w-1/5'} p-2">Date ({getTimezone()})</div>
@@ -71,12 +71,12 @@
 			<div class="{type === 'general' ? 'w-5/6' : 'w-4/5'} p-2">Message</div>
 		</div>
 		<div
-			class="bg-accent scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] flex h-full w-full flex-col overflow-y-auto overflow-x-hidden rounded-b-lg px-2 pb-2"
+			class="bg-accent scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] flex h-fit w-full flex-col-reverse overflow-y-auto overflow-x-hidden rounded-b-lg px-2 pb-2"
 			bind:this={scrollContainer}
 		>
 			{#each parsedLogs as log, i}
 				<div
-					class="flex border-b hover:rounded-lg hover:bg-[#33323e] {i === hoveredLogIndex
+					class="flex border-t hover:rounded-lg hover:bg-[#33323e] {i === hoveredLogIndex
 						? 'rounded-lg bg-[#33323e]'
 						: ''}"
 					on:mouseenter={() => (hoveredLogIndex = i)}

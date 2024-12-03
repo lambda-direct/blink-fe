@@ -36,15 +36,25 @@
 		? useServiceLogs($selectedInstanceId, projectId, serviceId, { interval: currentPeriod })
 		: null;
 
-	$: if ($queryLogs?.data) {
-		logs = $queryLogs.data.logs;
-		parsedLogs = logs.split('\n').map((log) => {
-			const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)/);
-			return match
-				? { timestamp: new Date(match[1]), message: log }
-				: { timestamp: null, message: log };
-		});
-		isLoading = false;
+	$: {
+		if ($queryLogs) {
+			isLoading = $queryLogs.isFetching;
+
+			if (!$queryLogs.isError && $queryLogs.data) {
+				logs = $queryLogs.data.logs;
+				parsedLogs = logs.split('\n').map((log) => {
+					const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)/);
+					return match
+						? { timestamp: new Date(match[1]), message: log }
+						: { timestamp: null, message: log };
+				});
+			} else {
+				logs = '';
+				parsedLogs = [];
+			}
+		} else {
+			isLoading = false;
+		}
 	}
 	$: validLogs =
 		parsedLogs.length > 0 && parsedLogs.every((log) => log.message && log.message.trim() !== '');

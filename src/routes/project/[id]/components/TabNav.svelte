@@ -6,7 +6,7 @@
 	export let hasMounts: boolean = false;
 </script>
 
-<div class="flex gap-8 border-b px-12">
+<div class="flex flex-wrap gap-8 border-b px-12">
 	<button
 		class="relative h-10 font-medium transition-colors hover:text-white {activeTab === 'settings'
 			? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
