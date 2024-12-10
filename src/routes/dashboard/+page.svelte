@@ -1,10 +1,11 @@
 <script lang="ts">
 	import ProjectCard from '$lib/components/ProjectCard.svelte';
+	import { Plus } from 'lucide-svelte';
 	import type { GetProjectsResponse } from '../../api/projects';
 	import { useProjects } from '../../queries/projects';
 	import { selectedInstanceId } from '../../stores/instanceStore';
 
-	let projects: GetProjectsResponse['projects'] = [];
+	let projects: GetProjectsResponse['projects'] | null = null;
 	let servicesCountMap: { [key: string]: number } = {};
 	let isLoading: boolean = true;
 
@@ -14,10 +15,10 @@
 			isLoading = $queryProjects.isFetching;
 
 			if (!$queryProjects.isError && $queryProjects.data) {
-				projects = $queryProjects.data.projects || [];
+				projects = $queryProjects.data.projects;
 				servicesCountMap = $queryProjects.data.servicesCountMap || {};
 			} else {
-				projects = [];
+				projects = null;
 				servicesCountMap = {};
 			}
 		} else {
@@ -32,11 +33,21 @@
 		<p class="text-sm text-neutral-400">Manage your projects</p>
 
 		{#if !isLoading}
-			{#if projects.length > 0}
+			{#if projects !== null}
 				<div class="mt-4 flex flex-wrap justify-center gap-4 border-t py-4 lg:justify-start">
 					{#each projects as project}
 						<ProjectCard {project} servicesCount={servicesCountMap[project.id]} />
 					{/each}
+					<button
+						class="h-full min-h-44 w-[330px] cursor-pointer overflow-hidden rounded-lg border border-dashed border-neutral-400 p-4 text-neutral-400 hover:border-white hover:text-white"
+						type="button"
+						aria-label={`Create new project`}
+					>
+						<div class="flex w-full items-center justify-center gap-2 pr-4">
+							<Plus class="h-4 w-4" />
+							<h5>Add a Project</h5>
+						</div>
+					</button>
 				</div>
 			{:else}
 				<p class="mt-4 border-t pt-4 text-center text-xl font-medium">No projects found</p>

@@ -39,7 +39,7 @@
 		<button
 			class="bg-card hover:bg-accent relative flex h-36 w-72 cursor-pointer flex-col justify-between rounded-lg border p-4 {selected
 				? 'border-[#853bce]'
-				: ''}"
+				: ''} outline-none"
 			on:click={() => handleClick(null)}
 			type="button"
 			aria-label={`${service.name}`}

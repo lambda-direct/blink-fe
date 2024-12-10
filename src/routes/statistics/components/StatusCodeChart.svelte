@@ -169,7 +169,7 @@
 			return updatedStatusCodeValues;
 		})();
 		initializeValues();
-		labelIndices = calculateIndices(interval, timestamps);
+		labelIndices = calculateIndices(interval, timestamps, chartWidth);
 	}
 </script>
 

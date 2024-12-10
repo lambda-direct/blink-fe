@@ -8,6 +8,7 @@ export interface Response {
 	instances: {
 		id: string;
 		name: string;
+		isOnline: boolean;
 		createdAt: number;
 		lastLoginAt: number | null;
 	}[];

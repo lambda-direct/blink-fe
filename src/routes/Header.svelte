@@ -28,6 +28,12 @@
 	let errorTimeout: ReturnType<typeof setTimeout>;
 	let renameInput: HTMLInputElement | null = null;
 
+	const dashboardLinks = [
+		{ href: '/dashboard', label: 'Dashboard' },
+		{ href: '/statistics', label: 'Statistics' },
+		{ href: '/logs', label: 'Logs' }
+	];
+
 	if (typeof window !== 'undefined') {
 		isAuthenticated = !!localStorage.getItem('accessToken');
 	}
@@ -179,40 +185,46 @@
 	{#if isAuthenticated}
 		<nav class="relative w-full border-b sm:px-14">
 			<div class="mx-auto mt-10 flex min-h-10 max-w-screen-lg items-center justify-end lg:mt-0">
-				<a
-					href="/dashboard"
-					class="relative h-10 px-4 py-2 font-medium transition-colors hover:text-white {currentPath ===
-					'/dashboard'
-						? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
-						: 'text-neutral-400'}"
-				>
-					Dashboard
-				</a>
-				<a
-					href="/statistics"
-					class="relative h-10 px-4 py-2 font-medium transition-colors hover:text-white {currentPath ===
-					'/statistics'
-						? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
-						: 'text-neutral-400'}"
-				>
-					Statistics
-				</a>
-				<a
-					href="/logs"
-					class="relative h-10 px-4 py-2 font-medium transition-colors hover:text-white {currentPath ===
-					'/logs'
-						? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
-						: 'text-neutral-400'}"
-				>
-					Logs
-				</a>
+				{#if isProjectsRoute}
+					<a
+						href={`/project/${projectId}`}
+						class="relative h-10 px-4 py-2 font-medium transition-colors hover:text-white {currentPath ===
+						`/project/${projectId}`
+							? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
+							: 'text-neutral-400'}"
+					>
+						Architecture
+					</a>
+					<a
+						href={`/project/${projectId}/observability`}
+						class="relative h-10 px-4 py-2 font-medium transition-colors hover:text-white {currentPath ===
+						`/project/${projectId}/observability`
+							? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
+							: 'text-neutral-400'}"
+					>
+						Observability
+					</a>
+				{:else}
+					{#each dashboardLinks as { href, label }}
+						<a
+							{href}
+							class="relative h-10 px-4 py-2 font-medium transition-colors hover:text-white {currentPath ===
+							href
+								? 'after:absolute after:-bottom-px after:left-0 after:h-px after:w-full after:bg-white after:content-[""]'
+								: 'text-neutral-400'}"
+						>
+							{label}
+						</a>{/each}
+				{/if}
 			</div>
 			<div class="absolute left-2 top-0 flex h-10 items-center gap-1 lg:left-20">
 				{#if selectedInstance}
 					<span class="mr-2 text-gray-600">/</span>
 					<DropdownMenu.Root closeOnItemClick={false} onOutsideClick={handleCancelEdit}>
 						<DropdownMenu.Trigger
-							class="flex w-fit items-center gap-2 overflow-hidden text-ellipsis outline-none"
+							class="flex w-fit items-center gap-2 overflow-hidden text-ellipsis outline-none {!selectedInstance.isOnline
+								? 'text-neutral-500'
+								: ''}"
 							style="max-width: var(--custom-max-width);"
 						>
 							<span class="truncate">{selectedInstance.name}</span>
@@ -228,7 +240,9 @@
 									on:click={() => handleSelectInstance(instance.id)}
 									class="flex items-center gap-2 text-base
 					 text-neutral-400 hover:text-white
-					  {instance.id === $selectedInstanceId ? 'text-white' : ''}"
+					  {instance.id === $selectedInstanceId ? 'text-white' : ''}
+					  {!instance.isOnline ? 'text-neutral-400' : ''}"
+									aria-disabled={!instance.isOnline}
 								>
 									<div class="h-4 w-4">
 										{#if instance.id === $selectedInstanceId}

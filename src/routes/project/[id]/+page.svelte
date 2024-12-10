@@ -8,7 +8,7 @@
 	import type { GetServiceResponse, GetServicesResponse } from '../../../api/services';
 	import { page } from '$app/stores';
 	import { useService, useServices } from '../../../queries/services';
-	import { XIcon } from 'lucide-svelte';
+	import { Plus, XIcon } from 'lucide-svelte';
 	import TabNav from './components/TabNav.svelte';
 	import SettingsTab from './components/SettingsTab.svelte';
 	import VariablesTab from './components/VariablesTab.svelte';
@@ -17,6 +17,7 @@
 	import MountsTab from './components/MountsTab.svelte';
 	import { selectedInstanceId } from '../../../stores/instanceStore';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let services: GetServicesResponse['services'] = [];
 	let service: GetServiceResponse | null = null;
@@ -26,10 +27,25 @@
 	let activeTab: Tab = 'settings';
 
 	let hasError: boolean = false;
-	let errorStatus: number = 500;
-	let errorMessage: string = 'An unexpected error occurred.';
+	let isLoading: boolean = false;
+	let errorStatus: number;
+	let errorMessage: string;
 
 	$: queryServices = $selectedInstanceId ? useServices($selectedInstanceId, projectId) : null;
+	$: {
+		if ($queryServices) {
+			isLoading = $queryServices.isFetching;
+			if ($queryServices?.isError) {
+				services = [];
+				hasError = true;
+				errorStatus = 404;
+				errorMessage = 'Project not found';
+			} else if ($queryServices?.data) {
+				services = $queryServices.data;
+			}
+		}
+	}
+
 	$: queryServiceDetails =
 		$selectedInstanceId && selectedServiceId
 			? useService($selectedInstanceId, projectId, selectedServiceId)
@@ -39,22 +55,6 @@
 	$: {
 		if ($queryServiceDetails?.data) {
 			service = $queryServiceDetails.data;
-		}
-	}
-
-	$: {
-		if ($queryServices?.isError) {
-			services = [];
-			hasError = true;
-			errorStatus = 404;
-			errorMessage = 'Project not found';
-		} else if ($queryServices?.data) {
-			services = $queryServices.data;
-			if (services.length === 0) {
-				hasError = true;
-				errorStatus = 404;
-				errorMessage = 'No services found for this project';
-			}
 		}
 	}
 
@@ -72,11 +72,25 @@
 		selectedServiceId = null;
 		selectedMountId = null;
 	}
+
+	function handleEscapeKey(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			closeServiceDetails();
+		}
+	}
+
+	onMount(() => {
+		document.addEventListener('keydown', handleEscapeKey);
+	});
+
+	onDestroy(() => {
+		document.removeEventListener('keydown', handleEscapeKey);
+	});
 </script>
 
 {#if hasError}
 	<ErrorPage status={errorStatus} message={errorMessage} />
-{:else}
+{:else if !isLoading}
 	<div class="relative flex h-full items-start justify-center overflow-y-auto pb-4">
 		<div
 			class="my-auto flex max-w-2xl flex-grow flex-wrap justify-center gap-10 transition-transform duration-300 ease-out"
@@ -91,13 +105,23 @@
 					selected={service.id === selectedServiceId}
 				/>
 			{/each}
+			<button
+				class="h-full min-h-44 w-[330px] cursor-pointer overflow-hidden rounded-lg border border-dashed border-neutral-400 p-4 text-neutral-400 hover:border-white hover:text-white"
+				type="button"
+				aria-label={`Create new project`}
+			>
+				<div class="flex w-full items-center justify-center gap-2 pr-4">
+					<Plus class="h-4 w-4" />
+					<h5>Add a Service</h5>
+				</div>
+			</button>
 		</div>
 		{#if selectedServiceId && service}
 			<div
 				class="bg-card fixed right-0 top-[114px] flex h-[calc(100%-91px)] w-full flex-col overflow-hidden rounded-lg border transition-transform duration-300 ease-out lg:top-[74px] lg:w-1/2"
 			>
 				<div class="flex h-full flex-col">
-					<div class="mb-5 flex w-full items-center justify-between px-12 pt-12">
+					<div class="mb-5 flex w-full items-center justify-between px-6 pt-12 md:px-12">
 						<span class="overflow-hidden text-ellipsis text-nowrap text-3xl">
 							{service.service.name}</span
 						>

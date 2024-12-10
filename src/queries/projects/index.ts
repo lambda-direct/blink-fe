@@ -3,6 +3,10 @@ import { getProjects } from '../../api/projects';
 import { getServices } from '../../api/services';
 
 export const useProjects = (instanceId: string, fetchServicesCount = false) => {
+	let accessToken: string | null = null;
+	if (typeof window !== 'undefined') {
+		accessToken = localStorage.getItem('accessToken');
+	}
 	return createQuery({
 		queryKey: ['all-projects', instanceId, fetchServicesCount],
 		queryFn: async () => {
@@ -21,7 +25,7 @@ export const useProjects = (instanceId: string, fetchServicesCount = false) => {
 
 			return { projects, servicesCountMap };
 		},
-		enabled: !!instanceId,
-		retry: false, 
+		enabled: !!instanceId && !!accessToken,
+		retry: false
 	});
 };

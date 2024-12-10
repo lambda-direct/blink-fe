@@ -62,13 +62,7 @@
 
 <div class="flex h-full w-full flex-col overflow-hidden rounded-lg">
 	<div class="mb-2 flex items-end justify-between border-b pb-2">
-		<h2 class="text-xl font-medium text-neutral-400">
-			{#if validLogs}
-				Service Logs
-			{:else if !isLoading}
-				No Logs
-			{/if}
-		</h2>
+		<h2 class="text-xl font-medium text-neutral-400">Service Logs</h2>
 		<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
 			<Select.Trigger class="w-[180px]">
 				<Select.Value placeholder="Period" />
@@ -85,6 +79,10 @@
 			<Skeleton />
 		{:else if validLogs}
 			<Logs {parsedLogs} type="service" />
+		{:else}
+			<div class="h-full flex items-center justify-center rounded-lg border">
+				<p class="text-center text-sm text-neutral-400">No Data</p>
+			</div>
 		{/if}
 	</div>
 </div>

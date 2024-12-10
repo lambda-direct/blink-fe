@@ -1,16 +1,16 @@
 import type { Interval } from '../../../api/statistics';
 
-export default (interval: Interval, timestamps: number[]): number[] => {
+export default (interval: Interval, timestamps: number[], chartWidth: number): number[] => {
 	const indices: number[] = [];
 	const selectedIndices: number[] = [];
 
 	const startTimestamp = timestamps[0];
 	const endTimestamp = timestamps[timestamps.length - 1];
 
-	const hourIndices = Array.from({ length: 12 }, (_, i) => i);
-	const dayIndices = [0, 4, 9, 14, 19, 23];
-	const weekIndices = [0, 1, 2, 3, 4, 5, 6];
-	const monthIndices = [0, 4, 8, 12, 17, 21, 25, 29];
+	const hourIndices = chartWidth < 650 ? [0, 4, 7, 11] : Array.from({ length: 12 }, (_, i) => i);
+	const dayIndices = chartWidth < 650 ? [0, 8, 15, 23] : [0, 4, 9, 14, 19, 23];
+	const weekIndices = chartWidth < 650 ? [0, 2, 4, 6] : [0, 1, 2, 3, 4, 5, 6];
+	const monthIndices = chartWidth < 650 ? [0, 10, 19, 29] : [0, 4, 8, 12, 17, 21, 25, 29];
 
 	let customIndices: number[] = [];
 	let unit: 'minutes' | 'hours' | 'days';

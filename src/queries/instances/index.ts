@@ -8,12 +8,18 @@ import {
 } from '../../api/instance';
 
 export const useInstances = () => {
+	let accessToken: string | null = null;
+	if (typeof window !== 'undefined') {
+		accessToken = localStorage.getItem('accessToken');
+	}
 	return createQuery({
 		queryKey: ['instances'],
 		queryFn: async () => {
 			const response = await getInstances();
 			return response.data;
-		}
+		},
+		enabled: !!accessToken,
+		retry: false
 	});
 };
 
@@ -25,7 +31,7 @@ export const useInstanceById = (instanceId: string) => {
 			return response.data;
 		},
 		enabled: !!instanceId,
-		retry: false, 
+		retry: false
 	});
 };
 
@@ -34,6 +40,6 @@ export const usePatchInstance = () => {
 		mutationFn: async ({ instanceId, data }) => {
 			const response = await patchInstanceById(instanceId, data);
 			return response.data;
-		},
+		}
 	});
 };

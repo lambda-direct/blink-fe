@@ -22,8 +22,6 @@
 	let isLoading: boolean = true;
 	let column: HTMLDivElement;
 	let columnWidth = 0;
-	let validResponseTimes: boolean = false;
-	let validStatusCodes: boolean = false;
 	let colorsMap: ChartColors = {};
 	let selectedStatusCode: string | null = null;
 
@@ -52,8 +50,6 @@
 		if (option.value !== currentPeriod) {
 			currentPeriod = option.value as Interval;
 			colorsMap = {};
-			validResponseTimes = false;
-			validStatusCodes = false;
 		}
 	}
 
@@ -94,7 +90,6 @@
 					responseTimes = $queryChart.data.responseTimeChart.map(
 						(item) => item.averageResponseTime
 					);
-					validResponseTimes = responseTimes.some((item) => item > 0);
 				}
 
 				if ($queryChart.data.statusCodeCountChart) {
@@ -102,7 +97,6 @@
 						const statusCounts: { [key: string]: number } = {};
 						for (const [statusCode, count] of Object.entries(entry.statusCodeCounts)) {
 							statusCounts[statusCode] = count;
-							if (count > 0) validStatusCodes = true;
 
 							if (!(statusCode in colorsMap)) {
 								const color =
@@ -122,8 +116,6 @@
 			timestamps = [];
 			responseTimes = [];
 			statusCodeCounts = [];
-			validResponseTimes = false;
-			validStatusCodes = false;
 		}
 	}
 
@@ -151,13 +143,7 @@
 </script>
 
 <div class="flex h-full w-full flex-col">
-	<div class="flex justify-between">
-		<h2 class="text-xl font-medium text-neutral-400">
-			{#if !validResponseTimes && !validStatusCodes && !isLoading}
-				No Data
-			{/if}
-		</h2>
-
+	<div class="flex justify-end">
 		<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
 			<Select.Trigger class="w-[180px]">
 				<Select.Value placeholder="Period" />
@@ -171,10 +157,10 @@
 	</div>
 	<div class="grid grid-cols-1 gap-10 xl:grid-cols-1">
 		<div bind:this={column} class="flex flex-col">
+			<h5>HTTP Average Response Time</h5>
 			{#if isLoading}
-				<Skeleton height="325px" />
-			{:else if validResponseTimes}
-				<h5>HTTP Average Response Time</h5>
+				<Skeleton height="300px" />
+			{:else if responseTimes.length > 0}
 				{#key `${timestamps.join(',')}-${responseTimes.join(',')}-${columnWidth}`}
 					<Chart
 						{timestamps}
@@ -184,15 +170,19 @@
 						interval={currentPeriod}
 					/>
 				{/key}
+			{:else}
+				<div class="flex min-h-[300px] flex-grow items-center justify-center rounded-lg border">
+					<p class="text-center text-sm text-neutral-400">No Data</p>
+				</div>
 			{/if}
 		</div>
 		<div class="mb-5 flex flex-col">
+			<h5>HTTP Response Count</h5>
 			{#if isLoading}
-				<Skeleton height="325px" />
-			{:else if validStatusCodes}
+				<Skeleton height="320px" />
+			{:else if statusCodeCounts.length > 0}
 				{#key `${timestamps.join(',')}-${currentStatusCodeCounts.join(',')}-${columnWidth}`}
-					<div class="flex items-center justify-between">
-						<h5>HTTP Response Count</h5>
+					<div class="flex items-center justify-end">
 						<Legend {colorsMap} selected={selectedStatusCode} on:codeSelect={handleCodeSelect} />
 					</div>
 					<StatusCodeChart
@@ -203,6 +193,10 @@
 						{colorsMap}
 					/>
 				{/key}
+			{:else}
+				<div class="flex min-h-[300px] flex-grow items-center justify-center rounded-lg border">
+					<p class="text-center text-sm text-neutral-400">No Data</p>
+				</div>
 			{/if}
 		</div>
 	</div>
