@@ -106,7 +106,7 @@
 				/>
 			{/each}
 			<button
-				class="h-full min-h-44 w-[330px] cursor-pointer overflow-hidden rounded-lg border border-dashed border-neutral-400 p-4 text-neutral-400 hover:border-white hover:text-white"
+				class="h-full min-h-36 w-72 cursor-pointer overflow-hidden rounded-lg border border-dashed border-neutral-400 p-4 text-neutral-400 hover:border-white hover:text-white"
 				type="button"
 				aria-label={`Create new project`}
 			>

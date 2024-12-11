@@ -11,8 +11,17 @@ const API = {
 	SERVICE_LIVE_LOGS: (instanceId: string, projectId: string, serviceId: string) =>
 		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/logs/realtime`
 };
-export interface LogsResponse {
+export interface Log {
+	createdAt: number;
+	message: string;
+}
+
+export interface ServiceLogsResponse {
 	logs: string;
+}
+
+export interface LogsResponse {
+	logs: Log[];
 }
 
 function getLogs(instanceId: string, params: { interval?: Interval } = {}) {
@@ -25,7 +34,7 @@ function getServiceLogs(
 	serviceId: string,
 	params: { interval?: Interval } = {}
 ) {
-	return axiosCfg.get<LogsResponse>(API.SERVICE_LOGS(instanceId, projectId, serviceId), { params });
+	return axiosCfg.get<ServiceLogsResponse>(API.SERVICE_LOGS(instanceId, projectId, serviceId), { params });
 }
 
 function getLogsRealtimeWS(instanceId: string, onMessage: (data: LogsResponse) => void) {
@@ -43,14 +52,14 @@ function getServiceLogsRealtimeWS(
 	instanceId: string,
 	projectId: string,
 	serviceId: string,
-	onMessage: (data: LogsResponse) => void
+	onMessage: (data: ServiceLogsResponse) => void
 ) {
 	const ws = new WebSocket(
 		`wss://${BASE_URL}/${API.SERVICE_LIVE_LOGS(instanceId, projectId, serviceId)}`
 	);
 
 	ws.onmessage = (event) => {
-		const data: LogsResponse = JSON.parse(event.data);
+		const data: ServiceLogsResponse = JSON.parse(event.data);
 		onMessage(data);
 	};
 

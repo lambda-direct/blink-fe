@@ -3,21 +3,14 @@
 	import type { Selected } from 'bits-ui';
 	import Logs from '$lib/components/Logs.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
-	import type { Interval } from '../../api/statistics';
+	import { periods, type Interval } from '../../api/statistics';
 	import { useLogs } from '../../queries/logs';
 	import type { LogsResponse } from '../../api/logs';
 	import { selectedInstanceId } from '../../stores/instanceStore';
 
-	let currentPeriod = '1d' as Interval;
+	let currentPeriod = '1h' as Interval;
 	let isLoading: boolean = false;
-	let logs: LogsResponse['logs'] = '';
-	let parsedLogs: { timestamp: Date | null; message: string }[] = [];
-
-	const periods = [
-		{ value: '1d', label: '24 Hour' },
-		{ value: '7d', label: 'Week' },
-		{ value: '30d', label: 'Month' }
-	];
+	let logs: LogsResponse['logs'] = [];
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
@@ -35,24 +28,16 @@
 		if ($queryLogs) {
 			isLoading = $queryLogs.isFetching;
 			if (!$queryLogs.isError && $queryLogs.data) {
-				logs = $queryLogs.data.logs || '';
-				parsedLogs = logs.split('\n').map((log) => {
-					const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
-					return match
-						? { timestamp: new Date(match[1]), message: log }
-						: { timestamp: null, message: log };
-				});
+				logs = $queryLogs.data.logs;
 			} else {
-				logs = '';
-				parsedLogs = [];
+				logs = [];
 			}
 		} else {
 			isLoading = false;
 		}
 	}
 
-	$: validLogs =
-		parsedLogs.length > 0 && parsedLogs.every((log) => log.message && log.message.trim() !== '');
+	$: validLogs = logs.length > 0 && logs.every((log) => log.message && log.message.trim() !== '');
 </script>
 
 <div class="h-full overflow-hidden pb-4">
@@ -76,7 +61,7 @@
 			{#if isLoading}
 				<Skeleton />
 			{:else if validLogs}
-				<Logs {parsedLogs} type="general" />
+				<Logs {logs} type="general" />
 			{:else}
 				<div class="flex h-full items-center justify-center rounded-lg border">
 					<p class="text-center text-sm text-neutral-400">No Data</p>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
-	import type { Interval } from '../../../../api/statistics';
+	import { periods, type Interval } from '../../../../api/statistics';
 	import { selectedInstanceId } from '../../../../stores/instanceStore';
 	import { useChartStatistics } from '../../../../queries/statistics';
 	import ChartSkeleton from '../../../../lib/components/Skeleton.svelte';
@@ -25,16 +25,8 @@
 	let column: HTMLDivElement;
 	let columnWidth = 0;
 
-	let logs: LogsResponse['logs'] = '';
-	let parsedLogs: { timestamp: Date | null; message: string }[] = [];
+	let logs: LogsResponse['logs'] = [];
 	let isLogsLoading: boolean = false;
-
-	const periods = [
-		{ value: '1h', label: '1 Hour' },
-		{ value: '1d', label: '24 Hour' },
-		{ value: '7d', label: 'Week' },
-		{ value: '30d', label: 'Month' }
-	];
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
@@ -76,7 +68,6 @@
 				diskUsage = chart.map((item) => item.usedFileSystem);
 				totalFileSystem = values.totalFileSystem;
 				totalMemory = values.totalMemory;
-				isLoading = false;
 			}
 		}
 	}
@@ -89,24 +80,14 @@
 		if ($queryLogs) {
 			isLogsLoading = $queryLogs.isFetching;
 			if (!$queryLogs.isError && $queryLogs.data) {
-				logs = $queryLogs.data.logs || '';
-				parsedLogs = logs.split('\n').map((log) => {
-					const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)/);
-					return match
-						? { timestamp: new Date(match[1]), message: log }
-						: { timestamp: null, message: log };
-				});
+				logs = $queryLogs.data.logs;
 			} else {
-				logs = '';
-				parsedLogs = [];
+				logs = [];
 			}
-		} else {
-			isLogsLoading = false;
 		}
 	}
 
-	$: validLogs =
-		parsedLogs.length > 0 && parsedLogs.every((log) => log.message && log.message.trim() !== '');
+	$: validLogs = logs.length > 0 && logs.every((log) => log.message && log.message.trim() !== '');
 
 	$: if (column) {
 		updateColumnWidth();
@@ -139,17 +120,17 @@
 		</div>
 		<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
 			<div class="bg-card flex h-96 flex-col rounded-md border p-6">
-			<h5 class="mb-[20px]">Logs</h5>
-			{#if isLogsLoading}
-				<ChartSkeleton height="300px" />
-			{:else if validLogs}
-				<Logs {parsedLogs} type="service" />
-			{:else}
-				<div class="flex flex-grow items-center justify-center rounded-lg border">
-					<p class="text-center text-sm text-neutral-400">No Logs</p>
-				</div>
-			{/if}
-		</div>
+				<h5 class="mb-[20px]">Logs</h5>
+				{#if isLogsLoading}
+					<ChartSkeleton height="300px" />
+				{:else if validLogs}
+					<Logs {logs} type="service" />
+				{:else}
+					<div class="flex flex-grow items-center justify-center rounded-lg border">
+						<p class="text-center text-sm text-neutral-400">No Logs</p>
+					</div>
+				{/if}
+			</div>
 			<div bind:this={column} class="bg-card flex h-96 flex-col rounded-md border p-6">
 				<h5>CPU Usage</h5>
 				<p class="text-sm text-neutral-400">Total: 100%</p>

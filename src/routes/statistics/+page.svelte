@@ -2,7 +2,7 @@
 	import Chart from './components/Chart.svelte';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
-	import type { Interval } from '../../api/statistics';
+	import { periods, type Interval } from '../../api/statistics';
 	import { useChartStatistics } from '../../queries/statistics';
 	import { onMount } from 'svelte';
 	import { formatBytes } from './utils/formatData';
@@ -20,12 +20,6 @@
 	let column: HTMLDivElement;
 	let columnWidth = 0;
 
-	const periods = [
-		{ value: '1h', label: '1 Hour' },
-		{ value: '1d', label: '24 Hour' },
-		{ value: '7d', label: 'Week' },
-		{ value: '30d', label: 'Month' }
-	];
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;

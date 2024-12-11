@@ -1,5 +1,10 @@
 import { createQuery } from '@tanstack/svelte-query';
-import { getChartStatistics, getHttpStats, type Interval } from '../../api/statistics';
+import {
+	getChartStatistics,
+	getHttpStats,
+	getServiceResourceUsage,
+	type Interval
+} from '../../api/statistics';
 
 export const getRefetchInterval = (interval?: Interval): number => {
 	// if (interval === '1h') {
@@ -43,6 +48,27 @@ export const useHttpStats = (
 			const response = await getHttpStats(instanceId, projectId, serviceId, params);
 			const { responseTimeChart, statusCodeCountChart } = response.data;
 			return { responseTimeChart, statusCodeCountChart };
+		},
+		refetchInterval,
+		enabled: !!instanceId,
+		retry: false
+	});
+};
+
+export const useServiceResourceUsage = (
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	params: { interval?: Interval } = {}
+) => {
+	const refetchInterval = getRefetchInterval(params.interval);
+
+	return createQuery({
+		queryKey: ['service-chart-data', instanceId, projectId, serviceId, params],
+		queryFn: async () => {
+			const response = await getServiceResourceUsage(instanceId, projectId, serviceId, params);
+			const { chart, values } = response.data;
+			return { chart, values };
 		},
 		refetchInterval,
 		enabled: !!instanceId,

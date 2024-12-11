@@ -1,9 +1,9 @@
 <script lang="ts">
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
-	import type { Interval } from '../../../../api/statistics';
+	import { periods, type Interval } from '../../../../api/statistics';
 	import { useServiceLogs } from '../../../../queries/logs';
-	import type { LogsResponse } from '../../../../api/logs';
+	import type { ServiceLogsResponse } from '../../../../api/logs';
 	import Logs from '$lib/components/Logs.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import { selectedInstanceId } from '../../../../stores/instanceStore';
@@ -13,15 +13,8 @@
 
 	let currentPeriod = '1h' as Interval;
 	let isLoading: boolean = true;
-	let logs: LogsResponse['logs'] = '';
-	let parsedLogs: { timestamp: Date | null; message: string }[] = [];
-
-	const periods = [
-		{ value: '1h', label: '1 Hour' },
-		{ value: '1d', label: '24 Hour' },
-		{ value: '7d', label: 'Week' },
-		{ value: '30d', label: 'Month' }
-	];
+	let logs: ServiceLogsResponse['logs'] = '';
+	let parsedLogs: { createdAt: number; message: string }[] = [];
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
@@ -43,10 +36,17 @@
 			if (!$queryLogs.isError && $queryLogs.data) {
 				logs = $queryLogs.data.logs;
 				parsedLogs = logs.split('\n').map((log) => {
-					const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)/);
-					return match
-						? { timestamp: new Date(match[1]), message: log }
-						: { timestamp: null, message: log };
+					const match = log.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)\s+(.*)$/);
+					if (match) {
+						return {
+							createdAt: new Date(match[1]).getTime(),
+							message: match[2]
+						};
+					}
+					return {
+						createdAt: 0,
+						message: log
+					};
 				});
 			} else {
 				logs = '';
@@ -78,9 +78,9 @@
 		{#if isLoading}
 			<Skeleton />
 		{:else if validLogs}
-			<Logs {parsedLogs} type="service" />
+			<Logs logs={parsedLogs} type="service" />
 		{:else}
-			<div class="h-full flex items-center justify-center rounded-lg border">
+			<div class="flex h-full items-center justify-center rounded-lg border">
 				<p class="text-center text-sm text-neutral-400">No Data</p>
 			</div>
 		{/if}

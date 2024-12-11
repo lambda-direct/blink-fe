@@ -21,12 +21,20 @@ export function formatBytes(sizeInBytes: number): string {
 
 export function formatMilliseconds(ms: number, decimal: number = 0): string {
 	const seconds = ms / 1000;
+	const minutes = seconds / 60;
+	const hours = minutes / 60;
+
 	if (seconds < 1) {
 		return `${ms.toFixed(decimal)} ms`;
+	} else if (seconds < 60) {
+		return `${seconds.toFixed(2)} s`;
+	} else if (minutes < 60) {
+		return `${minutes.toFixed(1)} m`;
+	} else {
+		return `${hours.toFixed(2)} h`;
 	}
-
-	return `${seconds.toFixed(2)} s`;
 }
+
 export function addCommas(number: number): string {
 	return new Intl.NumberFormat('en-US', {
 		style: 'decimal'
