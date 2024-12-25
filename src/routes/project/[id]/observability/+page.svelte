@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import * as Select from '$lib/components/ui/select';
 	import type { Selected } from 'bits-ui';
 	import { periods, type Interval } from '../../../../api/statistics';
@@ -8,8 +9,8 @@
 	import { onMount } from 'svelte';
 	import Chart from '../../../statistics/components/Chart.svelte';
 	import { formatBytes } from '../../../statistics/utils/formatData';
-	import type { LogsResponse } from '../../../../api/logs';
-	import { useLogs } from '../../../../queries/logs';
+	import type { ProjectLog } from '../../../../api/logs';
+	import { useProjectLogs } from '../../../../queries/logs';
 	import Logs from '$lib/components/Logs.svelte';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
 
@@ -25,7 +26,8 @@
 	let column: HTMLDivElement;
 	let columnWidth = 0;
 
-	let logs: LogsResponse['logs'] = [];
+	let projectId = $page.params.id;
+	let logs: { createdAt: number; service: string; message: string }[] = [];
 	let isLogsLoading: boolean = false;
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
@@ -37,7 +39,7 @@
 
 	function updateColumnWidth() {
 		if (column) {
-			columnWidth = column.offsetWidth - 24 * 2;
+			columnWidth = column.offsetWidth - 60;
 		}
 	}
 
@@ -73,21 +75,40 @@
 	}
 
 	$: queryLogs = $selectedInstanceId
-		? useLogs($selectedInstanceId, { interval: currentPeriod })
+		? useProjectLogs($selectedInstanceId, projectId, { interval: currentPeriod })
 		: null;
 
-	$: {
+		$: {
 		if ($queryLogs) {
 			isLogsLoading = $queryLogs.isFetching;
 			if (!$queryLogs.isError && $queryLogs.data) {
-				logs = $queryLogs.data.logs;
+				logs = $queryLogs.data.data
+					.flatMap((log) =>
+						log.logs
+							.split('\n')
+							.map((entry) => {
+								const match = entry.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)\s+(.*)$/);
+								if (match) {
+									return {
+										createdAt: new Date(match[1]).getTime(),
+										service: log.service.name,
+										message: match[2],
+									};
+								}
+								return {
+									createdAt: 0,
+									service: log.service.name,
+									message: entry,
+								};
+							})
+					)
+					.filter((entry) => entry.createdAt > 0)
+					.sort((a, b) => a.createdAt - b.createdAt);
 			} else {
 				logs = [];
 			}
 		}
 	}
-
-	$: validLogs = logs.length > 0 && logs.every((log) => log.message && log.message.trim() !== '');
 
 	$: if (column) {
 		updateColumnWidth();
@@ -123,7 +144,7 @@
 				<h5 class="mb-[20px]">Logs</h5>
 				{#if isLogsLoading}
 					<ChartSkeleton height="300px" />
-				{:else if validLogs}
+				{:else if logs.length > 0}
 					<Logs {logs} type="service" />
 				{:else}
 					<div class="flex flex-grow items-center justify-center rounded-lg border">

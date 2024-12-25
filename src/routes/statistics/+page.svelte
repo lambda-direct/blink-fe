@@ -30,7 +30,7 @@
 
 	function updateColumnWidth() {
 		if (column) {
-			columnWidth = column.offsetWidth;
+			columnWidth = column.offsetWidth - 15;
 		}
 	}
 
@@ -82,7 +82,7 @@
 
 <div class="h-full overflow-auto pb-4">
 	<div
-		class="bg-card mx-auto flex h-fit min-h-full max-w-screen-lg flex-col rounded-md border p-6 pt-10"
+		class="bg-card mx-auto flex h-fit min-h-full max-w-screen-lg flex-col rounded-md border p-6 pl-8 pt-10"
 	>
 		<div class="mb-5 flex justify-between">
 			<div>

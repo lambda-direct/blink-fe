@@ -23,13 +23,22 @@
 	let service: GetServiceResponse | null = null;
 	let selectedServiceId: string | null = null;
 	let selectedMountId: string | null = null;
-	let projectId = $page.params.id;
 	let activeTab: Tab = 'settings';
 
 	let hasError: boolean = false;
 	let isLoading: boolean = false;
 	let errorStatus: number;
 	let errorMessage: string;
+
+	$: projectId = $page.params.id;
+
+	$: {
+		if (projectId) {
+			selectedServiceId = null;
+			selectedMountId = null;
+			activeTab = 'settings';
+		}
+	}
 
 	$: queryServices = $selectedInstanceId ? useServices($selectedInstanceId, projectId) : null;
 	$: {

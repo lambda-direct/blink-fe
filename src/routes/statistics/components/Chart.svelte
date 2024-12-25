@@ -230,15 +230,15 @@
 				<text
 					x={X_OFFSET + (index / (timestamps.length - 1)) * (chartWidth - X_OFFSET - 5)}
 					y={chartHeight + 20}
-					text-anchor={index < 5 ? 'start' : index > timestamps.length - 5 ? 'end' : 'middle'}
+					text-anchor="middle"
 					font-size="12"
 					fill="#fff"
 					class="bottom-label"
 				>
-					{#if interval === '1d' || interval === '1h'}
-						{format(new Date(timestamps[index]), 'HH:mm')}
-					{:else}
+					{#if interval === '7d' || interval === '30d'}
 						{format(new Date(timestamps[index]), 'd MMM')}
+					{:else}
+						{format(new Date(timestamps[index]), 'HH:mm')}
 					{/if}
 				</text>
 			{/each}
@@ -317,9 +317,13 @@
 <style>
 	.chart-container {
 		position: relative;
+		overflow: visible;
 		width: 100%;
 	}
 
+	.chart-svg {
+		overflow: visible;
+	}
 	.chart-container__tooltip {
 		position: absolute;
 		z-index: 2;

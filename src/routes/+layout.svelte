@@ -31,7 +31,7 @@
 			const tokenFromUrl = urlParams.get('token');
 			const accessToken = localStorage.getItem('accessToken');
 
-			if (!accessToken && code) {
+			if (tokenFromUrl && code) {
 				const { accessToken, refreshToken } = await useAccessToken(tokenFromUrl, code);
 				localStorage.setItem('accessToken', accessToken);
 				localStorage.setItem('refreshToken', refreshToken);

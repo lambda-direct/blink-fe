@@ -3,9 +3,9 @@ const BASE_URL = import.meta.env.VITE_BASE_API_URL;
 
 const API = {
 	CHART: (instanceId: string) => `instances/${instanceId}/resourceUsage/chart`,
-	LIVE_CHART: (instanceId: string) => `instances/${instanceId}/resourceUsage/realtime`,
+	LIVE_CHART: (instanceId: string) => `ws-debug/instances/${instanceId}/resourceUsage/realtime`,
 	SERVICE_LIVE_CHART: (instanceId: string, projectId: string, serviceId: string) =>
-		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/resourceUsage/realtime`,
+		`ws-debug/instances/${instanceId}/projects/${projectId}/services/${serviceId}/resourceUsage/realtime`,
 	SERVICE_CHART: (instanceId: string, projectId: string, serviceId: string) =>
 		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/resourceUsage/chart`,
 	SERVICE_HTTP_CHART: (instanceId: string, projectId: string, serviceId: string) =>
@@ -23,7 +23,9 @@ export interface StatisticsResponse {
 export type StatisticsChart = {
 	averageCpuLoad: number;
 	usedFileSystem: number;
+	totalFileSystem: number;
 	usedMemory: number;
+	totalMemory: number;
 	timestamp: number;
 };
 
@@ -45,10 +47,14 @@ interface ServiceHttpStatsResponse {
 	}[];
 }
 
-export type Interval = '1h' | '1d' | '7d' | '30d';
+export type Interval = '15m' | '30m' | '1h' | '6h' | '12h' | '1d' | '7d' | '30d';
 export const periods = [
+	{ value: '15m', label: '15 Minutes' },
+	{ value: '30m', label: '30 Minutes' },
 	{ value: '1h', label: '1 Hour' },
-	{ value: '1d', label: '24 Hour' },
+	{ value: '6h', label: '6 Hours' },
+	{ value: '12h', label: '12 Hours' },
+	{ value: '1d', label: '24 Hours' },
 	{ value: '7d', label: 'Week' },
 	{ value: '30d', label: 'Month' }
 ];
@@ -76,10 +82,9 @@ function getServiceResourceUsage(
 	serviceId: string,
 	params: { interval?: Interval } = {}
 ) {
-	return axiosCfg.get<StatisticsResponse>(
-		API.SERVICE_CHART(instanceId, projectId, serviceId),
-		{ params }
-	);
+	return axiosCfg.get<StatisticsResponse>(API.SERVICE_CHART(instanceId, projectId, serviceId), {
+		params
+	});
 }
 
 function getServiceResourceUsageWS(
@@ -89,7 +94,7 @@ function getServiceResourceUsageWS(
 	onMessage: (data: GetServiceResourceUsage) => void
 ) {
 	const ws = new WebSocket(
-		`wss://${BASE_URL}/${API.SERVICE_LIVE_CHART(instanceId, projectId, serviceId)}`
+		`wss://${BASE_URL}${API.SERVICE_LIVE_CHART(instanceId, projectId, serviceId)}`
 	);
 
 	ws.onmessage = (event) => {
@@ -100,16 +105,21 @@ function getServiceResourceUsageWS(
 	return ws;
 }
 
-function getLiveStatisticsWS(instanceId: string, onMessage: (data: StatisticsResponse) => void) {
-	const ws = new WebSocket(
-			`wss://${BASE_URL}/${API.LIVE_CHART(instanceId)}`
-	);
+function getLiveStatisticsWS(instanceId: string, onMessage: (data: StatisticsChart) => void) {
+	const ws = new WebSocket(`wss://${BASE_URL}${API.LIVE_CHART(instanceId)}`);
 
 	ws.onmessage = (event) => {
-		const data: StatisticsResponse = JSON.parse(event.data);
+		const data: StatisticsChart = JSON.parse(event.data);
 		onMessage(data);
 	};
 
 	return ws;
 }
-export { getChartStatistics, getLiveStatisticsWS, getHttpStats, getServiceResourceUsage, getServiceResourceUsageWS };
+
+export {
+	getChartStatistics,
+	getLiveStatisticsWS,
+	getHttpStats,
+	getServiceResourceUsage,
+	getServiceResourceUsageWS
+};

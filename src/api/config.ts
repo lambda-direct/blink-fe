@@ -2,9 +2,11 @@ import axios, { type AxiosInstance } from 'axios';
 import { refreshAccessToken } from './auth';
 
 const BASE_URL = import.meta.env.VITE_BASE_API_URL;
+const HTTPS_BASE_URL = `https://${BASE_URL}`;
+
 
 const instance: AxiosInstance = axios.create({
-	baseURL: BASE_URL,
+	baseURL: HTTPS_BASE_URL,
 	headers: {
 		'Access-Control-Allow-Origin': '*',
 		'Content-Type': 'application/json'

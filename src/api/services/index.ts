@@ -6,25 +6,21 @@ const API = {
 	SERVICE: (instanceId: string, projectId: string, serviceId: string) =>
 		`instances/${instanceId}/projects/${projectId}/services/${serviceId}`
 };
+
+export interface Service {
+	id: string;
+	projectId: string;
+	name: string;
+	type: 'deployment' | 'storage';
+	commandWithArguments: string | null;
+	createdAt: number;
+}
 export interface GetServicesResponse {
-	services: {
-		id: string;
-		projectId: string;
-		name: string;
-		type: 'deployment' | 'storage';
-		createdAt: number;
-	}[];
+	services: Service[];
 }
 
 export interface GetServiceResponse {
-	service: {
-		id: string;
-		name: string;
-		imageName: string;
-		type: 'deployment' | 'storage';
-		commandWithArguments: string | null;
-		createdAt: number;
-	};
+	service: Service;
 	portMappings: {
 		id: string;
 		hostAddress: string;

@@ -1,15 +1,18 @@
 import axiosCfg from '../config';
+import type { Service } from '../services';
 import type { Interval } from '../statistics';
 
 const BASE_URL = import.meta.env.VITE_BASE_API_URL;
 
 const API = {
 	LOGS: (instanceId: string) => `instances/${instanceId}/logs/traefik`,
-	LIVE_LOGS: (instanceId: string) => `instances/${instanceId}/logs/traefik/realtime`,
+	LIVE_LOGS: (instanceId: string) => `ws-debug/instances/${instanceId}/logs/traefik/realtime`,
+	PROJECT_LOGS: (instanceId: string, projectId: string) =>
+		`instances/${instanceId}/projects/${projectId}/logs`,
 	SERVICE_LOGS: (instanceId: string, projectId: string, serviceId: string) =>
 		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/logs`,
 	SERVICE_LIVE_LOGS: (instanceId: string, projectId: string, serviceId: string) =>
-		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/logs/realtime`
+		`ws-debug/instances/${instanceId}/projects/${projectId}/services/${serviceId}/logs/realtime`
 };
 export interface Log {
 	createdAt: number;
@@ -24,6 +27,16 @@ export interface LogsResponse {
 	logs: Log[];
 }
 
+export interface ProjectLog {
+	service: Service;
+	logs: string;
+}
+
+export interface ProjectLogsResponse {
+	success: boolean;
+	data: ProjectLog[];
+}
+
 function getLogs(instanceId: string, params: { interval?: Interval } = {}) {
 	return axiosCfg.get<LogsResponse>(API.LOGS(instanceId), { params });
 }
@@ -35,6 +48,10 @@ function getServiceLogs(
 	params: { interval?: Interval } = {}
 ) {
 	return axiosCfg.get<ServiceLogsResponse>(API.SERVICE_LOGS(instanceId, projectId, serviceId), { params });
+}
+
+function getProjectLogs(instanceId: string, projectId: string, params: { interval?: Interval } = {}) {
+	return axiosCfg.get<ProjectLogsResponse>(API.PROJECT_LOGS(instanceId, projectId), { params });
 }
 
 function getLogsRealtimeWS(instanceId: string, onMessage: (data: LogsResponse) => void) {
@@ -66,4 +83,4 @@ function getServiceLogsRealtimeWS(
 	return ws;
 }
 
-export { getLogs, getLogsRealtimeWS, getServiceLogs, getServiceLogsRealtimeWS };
+export { getLogs, getLogsRealtimeWS, getServiceLogs, getProjectLogs, getServiceLogsRealtimeWS };

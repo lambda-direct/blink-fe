@@ -47,7 +47,7 @@
 		>
 			<div class="flex items-center gap-2">
 				{#if service.type === 'storage'}
-					<Database />
+					<Database class="w-4 h-4"/>
 				{/if}
 				<h5 class="w-56 overflow-hidden text-ellipsis text-nowrap text-left">{service.name}</h5>
 			</div>

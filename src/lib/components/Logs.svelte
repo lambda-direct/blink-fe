@@ -8,15 +8,29 @@
 	import { EllipsisVertical } from 'lucide-svelte';
 	import { format } from 'date-fns';
 	import { tick } from 'svelte';
-	import type { Log } from '../../api/logs';
 
-	export let logs: Log[] = [];
+	export let logs: { createdAt: number; service?: string; message: string }[] = [];
 	export let type: 'general' | 'service';
 
 	let hoveredLogIndex = -1;
 	let scrollContainer: HTMLDivElement | null = null;
 
-	let options = [{ label: 'Timestamp', checked: true }];
+	const hasDate = logs.some((log) => log.createdAt !== 0);
+	const hasService = logs.some((log) => log.service);
+
+	let options = [
+		...(hasDate ? [{ label: 'Timestamp', checked: true }] : []),
+		...(hasService ? [{ label: 'Service', checked: true }] : [])
+	];
+
+	let showServiceColumn = hasService;
+	let showDateColumn = hasDate;
+
+	let columnWidths: { dateWidth: string; serviceWidth: string; messageWidth: string } = {
+		dateWidth: '',
+		serviceWidth: '',
+		messageWidth: ''
+	};
 
 	const getTimezone = () => {
 		const offset = new Date().getTimezoneOffset();
@@ -34,14 +48,33 @@
 	const handleCheckboxChange = (label: string, isChecked: boolean) => {
 		if (label === 'Timestamp') {
 			showDateColumn = !isChecked;
+		} else if (label === 'Service') {
+			showServiceColumn = !isChecked;
 		}
 	};
 
 	$: if (logs) {
-		hoveredLogIndex = 0;
+		hoveredLogIndex = logs.length - 1;
 		scrollToBottom();
 	}
-	$: showDateColumn = logs.some((log) => log.createdAt !== 0);
+
+	$: {
+		let dateWidth = '';
+		let serviceWidth = '';
+		let messageWidth = '';
+
+		if (type === 'general') {
+			dateWidth = 'w-1/6';
+			serviceWidth = showServiceColumn ? 'w-1/6' : '';
+			messageWidth = showServiceColumn ? 'w-4/6' : 'w-5/6';
+		} else if (type === 'service') {
+			dateWidth = 'w-1/5';
+			serviceWidth = showServiceColumn ? 'w-1/5' : '';
+			messageWidth = showServiceColumn ? 'w-3/5' : 'w-4/5';
+		}
+
+		columnWidths = { dateWidth, serviceWidth, messageWidth };
+	}
 </script>
 
 <div
@@ -67,14 +100,17 @@
 	<div class="flex h-full w-full flex-col">
 		<div class="mb-1 flex gap-2 rounded-t-lg bg-[#33323e] px-2 py-1">
 			{#if showDateColumn}
-				<div class="mr-4 {type === 'general' ? 'w-1/6' : 'w-1/5'} p-2">
-					Date <span class="whitespace-nowrap ">({getTimezone()})</span>
+				<div class="{columnWidths.dateWidth} p-2">
+					Date <span class="whitespace-nowrap">({getTimezone()})</span>
 				</div>
 			{/if}
-			<div class="{type === 'general' ? 'w-5/6' : 'w-4/5'} p-2">Message</div>
+			{#if showServiceColumn}
+				<div class="{columnWidths.serviceWidth} p-2">Service</div>
+			{/if}
+			<div class="{columnWidths.messageWidth} p-2">Message</div>
 		</div>
 		<div
-			class="bg-accent scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] flex h-fit w-full flex-col-reverse overflow-y-auto overflow-x-hidden rounded-b-lg px-2 pb-2"
+			class="bg-accent scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] flex h-fit w-full flex-col overflow-y-auto overflow-x-hidden rounded-b-lg px-2 pb-2"
 			bind:this={scrollContainer}
 		>
 			{#each logs as log, i}
@@ -87,27 +123,27 @@
 					role="listitem"
 				>
 					{#if showDateColumn}
-						<div
-							class="mr-4 {type === 'general'
-								? 'w-1/6'
-								: 'w-1/5'} p-2 text-left text-neutral-400"
-						>
+						<div class="{columnWidths.dateWidth} p-2 text-left text-neutral-400">
 							{#if log.createdAt}
 								<span class="whitespace-nowrap"
 									>{format(new Date(log.createdAt), 'MMM ')}
 									{format(new Date(log.createdAt), 'dd ')}&nbsp;</span
 								>
-								<span class="ml-1 whitespace-nowrap">{format(new Date(log.createdAt), 'HH : mm : ss')}</span>
+								<span class="ml-1 whitespace-nowrap"
+									>{format(new Date(log.createdAt), 'HH : mm : ss')}</span
+								>
 							{:else}
 								No date
 							{/if}
 						</div>
 					{/if}
-					<div
-						class="{type === 'general'
-							? 'w-5/6'
-							: 'w-4/5'} whitespace-normal break-words p-2 text-left"
-					>
+					{#if showServiceColumn}
+						<div class="{columnWidths.serviceWidth} p-2 text-left">
+							{log.service}
+						</div>
+					{/if}
+
+					<div class="{columnWidths.messageWidth} whitespace-normal break-words p-2 text-left">
 						{log.message}
 					</div>
 				</div>

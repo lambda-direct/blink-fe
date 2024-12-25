@@ -7,7 +7,9 @@ export default (interval: Interval, timestamps: number[], chartWidth: number): n
 	const startTimestamp = timestamps[0];
 	const endTimestamp = timestamps[timestamps.length - 1];
 
+	const minuteIndices = chartWidth < 650 ? [1, 4, 8, 12, 15] : [1, 3, 5, 7, 9, 11, 13, 15];
 	const hourIndices = chartWidth < 650 ? [0, 4, 7, 11] : Array.from({ length: 12 }, (_, i) => i);
+	const hoursIndices = Array.from({ length: 6 }, (_, i) => i);
 	const dayIndices = chartWidth < 650 ? [0, 8, 15, 23] : [0, 4, 9, 14, 19, 23];
 	const weekIndices = chartWidth < 650 ? [0, 2, 4, 6] : [0, 1, 2, 3, 4, 5, 6];
 	const monthIndices = chartWidth < 650 ? [0, 10, 19, 29] : [0, 4, 8, 12, 17, 21, 25, 29];
@@ -16,10 +18,26 @@ export default (interval: Interval, timestamps: number[], chartWidth: number): n
 	let unit: 'minutes' | 'hours' | 'days';
 	let intervalSize: number;
 
-	if (interval === '1h') {
+	if (interval === '15m') {
+		unit = 'minutes';
+		intervalSize = 1;
+		customIndices = minuteIndices;
+	} else if (interval === '30m') {
+		unit = 'minutes';
+		intervalSize = 2;
+		customIndices = minuteIndices;
+	} else if (interval === '1h') {
 		unit = 'minutes';
 		intervalSize = 5;
 		customIndices = hourIndices;
+	} else if (interval === '6h') {
+		unit = 'hours';
+		intervalSize = 1;
+		customIndices = hoursIndices;
+	} else if (interval === '12h') {
+		unit = 'hours';
+		intervalSize = 2;
+		customIndices = hoursIndices;
 	} else if (interval === '1d') {
 		unit = 'hours';
 		intervalSize = 1;
@@ -115,6 +133,3 @@ export default (interval: Interval, timestamps: number[], chartWidth: number): n
 	}
 	return indices;
 };
-
-
-
