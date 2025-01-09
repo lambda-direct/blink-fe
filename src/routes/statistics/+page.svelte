@@ -8,8 +8,8 @@
 	import { formatBytes } from './utils/formatData';
 	import ChartSkeleton from '../../lib/components/Skeleton.svelte';
 	import { selectedInstanceId } from '../../stores/instanceStore';
+	import { getSelectedObject, selectedPeriod, setSelectedPeriod } from '../../stores/periodStore';
 
-	let currentPeriod = '1h' as Interval;
 	let cpuUsage = [] as number[];
 	let diskUsage = [] as number[];
 	let timestamps = [] as number[];
@@ -23,8 +23,8 @@
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
-		if (option.value !== currentPeriod) {
-			currentPeriod = option.value as Interval;
+		if (option.value !== $selectedPeriod) {
+			setSelectedPeriod(option.value as Interval);
 		}
 	}
 
@@ -34,10 +34,9 @@
 		}
 	}
 
-	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
 	$: queryChart = $selectedInstanceId
 		? useChartStatistics($selectedInstanceId, {
-				interval: currentPeriod
+				interval: $selectedPeriod
 			})
 		: null;
 
@@ -89,7 +88,7 @@
 				<h3 class="mb-1 text-xl font-medium">Statistics</h3>
 				<p class="text-sm text-neutral-400">Watch your VPS resource usage</p>
 			</div>
-			<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
+			<Select.Root selected={getSelectedObject()} onSelectedChange={handleSelectPeriod}>
 				<Select.Trigger class="w-[180px]">
 					<Select.Value placeholder="Period" />
 				</Select.Trigger>
@@ -107,13 +106,13 @@
 				{#if isLoading}
 					<ChartSkeleton height="300px" />
 				{:else if cpuUsage.length > 0}
-					{#key `${currentPeriod}-${columnWidth}`}
+					{#key `${selectedPeriod}-${columnWidth}`}
 						<Chart
 							{timestamps}
 							data={cpuUsage}
 							chartWidth={columnWidth}
 							type="percent"
-							interval={currentPeriod}
+							interval={$selectedPeriod}
 						/>
 					{/key}
 				{:else}
@@ -128,14 +127,14 @@
 				{#if isLoading}
 					<ChartSkeleton height="300px" />
 				{:else if memoryUsage.length > 0}
-					{#key `${currentPeriod}-${columnWidth}`}
+					{#key `${selectedPeriod}-${columnWidth}`}
 						<Chart
 							{timestamps}
 							data={memoryUsage}
 							chartWidth={columnWidth}
 							total={totalMemory}
 							type="B"
-							interval={currentPeriod}
+							interval={$selectedPeriod}
 						/>
 					{/key}
 				{:else}
@@ -150,14 +149,14 @@
 				{#if isLoading}
 					<ChartSkeleton height="300px" />
 				{:else if diskUsage.length > 0}
-					{#key `${currentPeriod}-${columnWidth}`}
+					{#key `${selectedPeriod}-${columnWidth}`}
 						<Chart
 							{timestamps}
 							data={diskUsage}
 							chartWidth={columnWidth}
 							total={totalFileSystem}
 							type="B"
-							interval={currentPeriod}
+							interval={$selectedPeriod}
 						/>
 					{/key}
 				{:else}

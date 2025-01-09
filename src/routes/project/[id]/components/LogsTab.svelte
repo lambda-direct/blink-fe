@@ -7,26 +7,25 @@
 	import Logs from '$lib/components/Logs.svelte';
 	import Skeleton from '$lib/components/Skeleton.svelte';
 	import { selectedInstanceId } from '../../../../stores/instanceStore';
+	import { getSelectedObject, selectedPeriod, setSelectedPeriod } from '../../../../stores/periodStore';
 
 	export let projectId: string;
 	export let serviceId: string;
 
-	let currentPeriod = '1h' as Interval;
 	let isLoading: boolean = true;
 	let logs: ServiceLogsResponse['logs'] = '';
 	let parsedLogs: { createdAt: number; message: string }[] = [];
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
-		if (option.value !== currentPeriod) {
-			currentPeriod = option.value as Interval;
+		if (option.value !== $selectedPeriod) {
+			setSelectedPeriod(option.value as Interval);
 			isLoading = true;
 		}
 	}
 
-	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
 	$: queryLogs = $selectedInstanceId
-		? useServiceLogs($selectedInstanceId, projectId, serviceId, { interval: currentPeriod })
+		? useServiceLogs($selectedInstanceId, projectId, serviceId, { interval: $selectedPeriod })
 		: null;
 
 	$: {
@@ -63,7 +62,7 @@
 <div class="flex h-full w-full flex-col overflow-hidden rounded-lg">
 	<div class="mb-2 flex items-end justify-between border-b pb-2">
 		<h2 class="text-xl font-medium text-neutral-400">Service Logs</h2>
-		<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
+		<Select.Root selected={getSelectedObject()} onSelectedChange={handleSelectPeriod}>
 			<Select.Trigger class="w-[180px]">
 				<Select.Value placeholder="Period" />
 			</Select.Trigger>

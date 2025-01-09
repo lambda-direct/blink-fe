@@ -154,7 +154,7 @@
 								{/key}
 							{:else if activeTab === 'variables'}
 								{#key service.service.id}
-									<VariablesTab variables={service.environmentVariables} />
+									<VariablesTab {projectId} serviceId={service.service.id} />
 								{/key}
 							{:else if activeTab === 'metrics'}
 								{#key service.service.id}

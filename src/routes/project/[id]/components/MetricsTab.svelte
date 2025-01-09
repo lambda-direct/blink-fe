@@ -12,11 +12,15 @@
 	import { getRandomColor } from '../../../statistics/utils/getRandomColor';
 	import { selectedInstanceId } from '../../../../stores/instanceStore';
 	import { formatBytes } from '../../../statistics/utils/formatData';
+	import {
+		getSelectedObject,
+		selectedPeriod,
+		setSelectedPeriod
+	} from '../../../../stores/periodStore';
 
 	export let projectId: string;
 	export let serviceId: string;
 
-	let currentPeriod = '1h' as Interval;
 	let timestamps = [] as number[];
 	let responseTimes: number[] = [];
 	let statusCodeCounts: { [statusCode: string]: number }[] = [];
@@ -49,8 +53,8 @@
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
-		if (option.value !== currentPeriod) {
-			currentPeriod = option.value as Interval;
+		if (option.value !== $selectedPeriod) {
+			setSelectedPeriod(option.value as Interval);
 			colorsMap = {};
 		}
 	}
@@ -77,11 +81,9 @@
 		selectedStatusCode;
 	}
 
-	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
-
 	$: queryChart = $selectedInstanceId
 		? useServiceResourceUsage($selectedInstanceId, projectId, serviceId, {
-				interval: currentPeriod
+				interval: $selectedPeriod
 			})
 		: null;
 
@@ -109,7 +111,7 @@
 	}
 
 	$: queryHttpChart = $selectedInstanceId
-		? useHttpStats($selectedInstanceId, projectId, serviceId, { interval: currentPeriod })
+		? useHttpStats($selectedInstanceId, projectId, serviceId, { interval: $selectedPeriod })
 		: null;
 
 	$: {
@@ -176,7 +178,7 @@
 
 <div class="flex h-full w-full flex-col">
 	<div class="flex justify-end">
-		<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
+		<Select.Root selected={getSelectedObject()} onSelectedChange={handleSelectPeriod}>
 			<Select.Trigger class="w-[180px]">
 				<Select.Value placeholder="Period" />
 			</Select.Trigger>
@@ -194,13 +196,13 @@
 			{#if resourceIsLoading}
 				<Skeleton height="300px" />
 			{:else if cpuUsage.length > 0}
-				{#key `${currentPeriod}-${columnWidth}`}
+				{#key `${selectedPeriod}-${columnWidth}`}
 					<Chart
 						timestamps={resourceTimestamps}
 						data={cpuUsage}
 						chartWidth={columnWidth}
 						type="percent"
-						interval={currentPeriod}
+						interval={$selectedPeriod}
 					/>
 				{/key}
 			{:else}
@@ -215,14 +217,14 @@
 			{#if resourceIsLoading}
 				<Skeleton height="300px" />
 			{:else if memoryUsage.length > 0}
-				{#key `${currentPeriod}-${columnWidth}`}
+				{#key `${selectedPeriod}-${columnWidth}`}
 					<Chart
 						timestamps={resourceTimestamps}
 						data={memoryUsage}
 						total={totalMemory}
 						chartWidth={columnWidth}
 						type="B"
-						interval={currentPeriod}
+						interval={$selectedPeriod}
 					/>
 				{/key}
 			{:else}
@@ -237,14 +239,14 @@
 			{#if resourceIsLoading}
 				<Skeleton height="300px" />
 			{:else if diskUsage.length > 0}
-				{#key `${currentPeriod}-${columnWidth}`}
+				{#key `${selectedPeriod}-${columnWidth}`}
 					<Chart
 						timestamps={resourceTimestamps}
 						data={diskUsage}
 						total={totalFileSystem}
 						chartWidth={columnWidth}
 						type="B"
-						interval={currentPeriod}
+						interval={$selectedPeriod}
 					/>
 				{/key}
 			{:else}
@@ -264,7 +266,7 @@
 						data={responseTimes}
 						chartWidth={columnWidth}
 						type="ms"
-						interval={currentPeriod}
+						interval={$selectedPeriod}
 					/>
 				{/key}
 			{:else}
@@ -286,7 +288,7 @@
 						{timestamps}
 						chartWidth={columnWidth}
 						statusCodeCounts={currentStatusCodeCounts}
-						interval={currentPeriod}
+						interval={$selectedPeriod}
 						{colorsMap}
 					/>
 				{/key}

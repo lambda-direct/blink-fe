@@ -9,12 +9,15 @@
 	import { onMount } from 'svelte';
 	import Chart from '../../../statistics/components/Chart.svelte';
 	import { formatBytes } from '../../../statistics/utils/formatData';
-	import type { ProjectLog } from '../../../../api/logs';
 	import { useProjectLogs } from '../../../../queries/logs';
 	import Logs from '$lib/components/Logs.svelte';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
+	import {
+		getSelectedObject,
+		selectedPeriod,
+		setSelectedPeriod
+	} from '../../../../stores/periodStore';
 
-	let currentPeriod = '1h' as Interval;
 	let cpuUsage = [] as number[];
 	let diskUsage = [] as number[];
 	let timestamps = [] as number[];
@@ -32,8 +35,8 @@
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
-		if (option.value !== currentPeriod) {
-			currentPeriod = option.value as Interval;
+		if (option.value !== $selectedPeriod) {
+			setSelectedPeriod(option.value as Interval);
 		}
 	}
 
@@ -43,10 +46,9 @@
 		}
 	}
 
-	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
 	$: queryChart = $selectedInstanceId
 		? useChartStatistics($selectedInstanceId, {
-				interval: currentPeriod
+				interval: $selectedPeriod
 			})
 		: null;
 
@@ -75,32 +77,32 @@
 	}
 
 	$: queryLogs = $selectedInstanceId
-		? useProjectLogs($selectedInstanceId, projectId, { interval: currentPeriod })
+		? useProjectLogs($selectedInstanceId, projectId, { interval: $selectedPeriod })
 		: null;
 
-		$: {
+	$: {
 		if ($queryLogs) {
 			isLogsLoading = $queryLogs.isFetching;
 			if (!$queryLogs.isError && $queryLogs.data) {
 				logs = $queryLogs.data.data
 					.flatMap((log) =>
-						log.logs
-							.split('\n')
-							.map((entry) => {
-								const match = entry.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)\s+(.*)$/);
-								if (match) {
-									return {
-										createdAt: new Date(match[1]).getTime(),
-										service: log.service.name,
-										message: match[2],
-									};
-								}
+						log.logs.split('\n').map((entry) => {
+							const match = entry.match(
+								/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)\s+(.*)$/
+							);
+							if (match) {
 								return {
-									createdAt: 0,
+									createdAt: new Date(match[1]).getTime(),
 									service: log.service.name,
-									message: entry,
+									message: match[2]
 								};
-							})
+							}
+							return {
+								createdAt: 0,
+								service: log.service.name,
+								message: entry
+							};
+						})
 					)
 					.filter((entry) => entry.createdAt > 0)
 					.sort((a, b) => a.createdAt - b.createdAt);
@@ -128,7 +130,7 @@
 {:else}
 	<div class="flex h-full min-h-full w-full flex-col overflow-auto p-4 pb-4">
 		<div class="mb-5 flex justify-end">
-			<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
+			<Select.Root selected={getSelectedObject()} onSelectedChange={handleSelectPeriod}>
 				<Select.Trigger class="w-[180px]">
 					<Select.Value placeholder="Period" />
 				</Select.Trigger>
@@ -158,13 +160,13 @@
 				{#if isLoading}
 					<ChartSkeleton height="300px" />
 				{:else if cpuUsage.length > 0}
-					{#key `${currentPeriod}-${columnWidth}`}
+					{#key `${selectedPeriod}-${columnWidth}`}
 						<Chart
 							{timestamps}
 							data={cpuUsage}
 							chartWidth={columnWidth}
 							type="percent"
-							interval={currentPeriod}
+							interval={$selectedPeriod}
 						/>
 					{/key}
 				{:else}
@@ -179,14 +181,14 @@
 				{#if isLoading}
 					<ChartSkeleton height="300px" />
 				{:else if memoryUsage.length > 0}
-					{#key `${currentPeriod}-${columnWidth}`}
+					{#key `${selectedPeriod}-${columnWidth}`}
 						<Chart
 							{timestamps}
 							data={memoryUsage}
 							chartWidth={columnWidth}
 							total={totalMemory}
 							type="B"
-							interval={currentPeriod}
+							interval={$selectedPeriod}
 						/>
 					{/key}
 				{:else}
@@ -201,14 +203,14 @@
 				{#if isLoading}
 					<ChartSkeleton height="300px" />
 				{:else if diskUsage.length > 0}
-					{#key `${currentPeriod}-${columnWidth}`}
+					{#key `${selectedPeriod}-${columnWidth}`}
 						<Chart
 							{timestamps}
 							data={diskUsage}
 							chartWidth={columnWidth}
 							total={totalFileSystem}
 							type="B"
-							interval={currentPeriod}
+							interval={$selectedPeriod}
 						/>
 					{/key}
 				{:else}
@@ -220,5 +222,3 @@
 		</div>
 	</div>
 {/if}
-
-<!-- trigger deploy -->

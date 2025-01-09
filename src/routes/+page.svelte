@@ -26,7 +26,7 @@
 			console.error('Failed to copy command: ', error);
 		}
 	}
-	const githubAuthUrl = import.meta.env.VITE_GITHUB_AUTH_URL;
+	const docUrl = 'https://blink-doc.oleksiikilevoi.site/docs/overview';
 </script>
 
 <div class="h-full overflow-auto">
@@ -36,7 +36,7 @@
 				Welcome to <span class="text-[#a667e4]">Dokkulify</span> CLient!
 			</h1>
 		</div>
-		<div class="flex w-fit flex-col items-start gap-4 text-white">
+		<!-- <div class="flex w-fit flex-col items-start gap-4 text-white">
 			<h2 class="text-2xl">Usage Guide:</h2>
 			<div class="flex w-full flex-col gap-4 text-lg">
 				<div class="flex items-center gap-4">
@@ -95,23 +95,20 @@
 					<span>Enjoy using Dokkulify!</span>
 				</div>
 			</div>
-		</div>
+		</div> -->
 
-		<!-- {#if !isAuthenticated}
-			<div class="mx-auto my-4 flex w-full max-w-lg items-center">
-				<div class="flex-grow border-t border-gray-600"></div>
-				<span class="mx-4 text-gray-600">OR</span>
-				<div class="flex-grow border-t border-gray-600"></div>
-			</div>
+		<!-- <div class="mx-auto my-4 flex w-full max-w-lg items-center">
+			<div class="flex-grow border-t border-gray-600"></div>
+			<span class="mx-4 text-gray-600">OR</span>
+			<div class="flex-grow border-t border-gray-600"></div>
+		</div> -->
 
-			<button
-				on:click={() => (window.location.href = githubAuthUrl)}
-				class="flex w-fit items-center justify-center gap-2 rounded-lg bg-[#853bce] px-4 py-2 text-white hover:bg-[#a667e4]"
-			>
-				<Github class="h-5 w-5" />
-				<span>Sign in with GitHub</span>
-			</button>
-		{/if} -->
+		<button
+			on:click={() => window.open(docUrl, '_blank')}
+			class="flex w-fit items-center justify-center gap-2 rounded-lg bg-[#853bce] px-4 py-2 text-white hover:bg-[#a667e4]"
+		>
+			<span>Documentation</span>
+		</button>
 
 		<!-- <div
 			class="bg-accent mb-4 flex min-h-[500px] w-full flex-1 items-center justify-center rounded-lg border p-4"

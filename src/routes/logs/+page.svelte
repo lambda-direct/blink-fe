@@ -7,21 +7,20 @@
 	import { useLogs } from '../../queries/logs';
 	import type { LogsResponse } from '../../api/logs';
 	import { selectedInstanceId } from '../../stores/instanceStore';
+	import { getSelectedObject, selectedPeriod, setSelectedPeriod } from '../../stores/periodStore';
 
-	let currentPeriod = '1h' as Interval;
 	let isLoading: boolean = false;
 	let logs: LogsResponse['logs'] = [];
 
 	function handleSelectPeriod(option: Selected<string> | undefined) {
 		if (!option) return;
-		if (option.value !== currentPeriod) {
-			currentPeriod = option.value as Interval;
+		if (option.value !== $selectedPeriod) {
+			setSelectedPeriod(option.value as Interval);
 		}
 	}
 
-	$: selectedPeriod = periods.find((opt) => opt.value === currentPeriod);
 	$: queryLogs = $selectedInstanceId
-		? useLogs($selectedInstanceId, { interval: currentPeriod })
+		? useLogs($selectedInstanceId, { interval: $selectedPeriod })
 		: null;
 
 	$: {
@@ -46,7 +45,7 @@
 	>
 		<div class="mb-2 flex items-end justify-between border-b pb-2">
 			<h2 class="text-xl font-medium">Logs</h2>
-			<Select.Root selected={selectedPeriod} onSelectedChange={handleSelectPeriod}>
+			<Select.Root selected={getSelectedObject()} onSelectedChange={handleSelectPeriod}>
 				<Select.Trigger class="w-[180px]">
 					<Select.Value placeholder="Period" />
 				</Select.Trigger>

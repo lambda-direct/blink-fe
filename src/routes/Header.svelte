@@ -64,9 +64,9 @@
 		? instances.find((instance) => instance.id === $selectedInstanceId)
 		: null;
 
-	function handleSelectInstance(id: string) {
+	async function handleSelectInstance(id: string) {
 		if (isProjectsRoute) {
-			goto('/dashboard');
+			await goto('/dashboard');
 		}
 		setInstanceId(id);
 	}
