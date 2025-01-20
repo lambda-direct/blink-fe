@@ -150,7 +150,7 @@
 						>
 							{#if activeTab === 'settings'}
 								{#key service.service.id}
-									<SettingsTab {service} />
+									<SettingsTab {projectId} {service} />
 								{/key}
 							{:else if activeTab === 'variables'}
 								{#key service.service.id}

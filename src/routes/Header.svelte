@@ -15,6 +15,7 @@
 	import { setInstanceId } from '../stores/instanceStore';
 	import { patchInstanceById } from '../api/instance';
 	import { selectedInstanceId } from '../stores/instanceStore';
+	import { clearError, setError } from '../stores/errorStore';
 
 	let instances: Response['instances'] = [];
 	let isEditing: boolean = false;
@@ -27,6 +28,7 @@
 	let showInvalidNameError: boolean = false;
 	let errorTimeout: ReturnType<typeof setTimeout>;
 	let renameInput: HTMLInputElement | null = null;
+	let selectedInstance: Response['instances'][number] | null = null;
 
 	const dashboardLinks = [
 		{ href: '/dashboard', label: 'Dashboard' },
@@ -41,7 +43,7 @@
 	$: isProjectsRoute = currentPath.startsWith('/project');
 
 	$: queryInstances = useInstances();
-	$: if ($queryInstances.data) {
+	$: if ($queryInstances?.isFetched && $queryInstances.data) {
 		instances = $queryInstances.data.instances.sort((a, b) => {
 			const dateA = a.lastLoginAt || 0;
 			const dateB = b.lastLoginAt || 0;
@@ -58,11 +60,21 @@
 
 			setInstanceId(lastInstance.id);
 		}
-	}
 
-	$: selectedInstance = $selectedInstanceId
-		? instances.find((instance) => instance.id === $selectedInstanceId)
-		: null;
+		selectedInstance = $selectedInstanceId
+			? instances.find((instance) => instance.id === $selectedInstanceId) || null
+			: null;
+
+		if (selectedInstance) {
+			if (!selectedInstance.isOnline) {
+				setError('Instance is not connected');
+			} else {
+				clearError();
+			}
+		} else {
+			setError('Instance does not exist');
+		}
+	}
 
 	async function handleSelectInstance(id: string) {
 		if (isProjectsRoute) {
@@ -107,7 +119,7 @@
 			try {
 				await patchInstanceById(selectedInstance.id, data);
 				const instanceIndex = instances.findIndex(
-					(instance) => instance.id === selectedInstance.id
+					(instance) => instance.id === selectedInstance?.id
 				);
 				if (instanceIndex !== -1) {
 					instances[instanceIndex] = { ...instances[instanceIndex], name: newItemName };

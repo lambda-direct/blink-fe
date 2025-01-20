@@ -6,6 +6,7 @@
 	import Header from './Header.svelte';
 	import { useAccessToken } from '../queries/auth';
 	import '../app.css';
+	import ErrorModal from '$lib/components/ErrorModal.svelte';
 
 	let isLoading = true;
 	let isAuthenticated = false;
@@ -52,7 +53,12 @@
 	<div class="app font-poppins min-h-screen text-neutral-50">
 		<Header />
 		{#if !isLoading}
-			<main class="{isAuthenticated ? 'h-[calc(100vh-80px-17px*2)] lg:h-[calc(100vh-40px-17px*2)]' : ''} overflow-hidden">
+			<main
+				class="{isAuthenticated
+					? 'h-[calc(100vh-80px-17px*2)] lg:h-[calc(100vh-40px-17px*2)]'
+					: ''} overflow-hidden"
+			>
+				<ErrorModal errorType="general" />
 				<slot></slot>
 			</main>
 		{/if}

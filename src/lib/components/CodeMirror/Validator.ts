@@ -25,13 +25,26 @@ class Validator {
 
 			lines.forEach((line, index) => {
 				const trimmedLine = line.trim();
-				const keyMatch = trimmedLine.match(/^"([^"]+)":/);
+				const keyMatch = trimmedLine.match(/^"([^"]+)":\s*"?([^"]*)"?/);
 				if (keyMatch) {
 					const key = keyMatch[1];
+					const value = keyMatch[2];
+					if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+						errors.push({
+							line: index + 1,
+							message: `Invalid variable name`
+						});
+					}
 					if (keys.has(key)) {
 						errors.push({
 							line: index + 1,
 							message: `Duplicate variable name '${key}'`
+						});
+					}
+					if (/\s/.test(value)) {
+						errors.push({
+							line: index + 1,
+							message: `Whitespace is not allowed`
 						});
 					}
 					keys.set(key, index + 1);
@@ -66,15 +79,21 @@ class Validator {
 			const trimmedLine = line.trim();
 			if (trimmedLine === '' || trimmedLine.startsWith('#')) return;
 
-			const [name] = trimmedLine.split('=', 1);
-			const isValidEnvLine = /^[A-Za-z_][A-Za-z0-9_]*=.*$/.test(trimmedLine);
+			const [name, ...valueParts] = trimmedLine.split('=');
+			const value = valueParts.join('=').trim();
 
-			if (!isValidEnvLine) {
-				errors.push({ line: lineNumber, message: 'Invalid format' });
+			if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+				errors.push({ line: lineNumber, message: 'Invalid variable name' });
 			} else if (currentNames.has(name.trim())) {
 				errors.push({ line: lineNumber, message: `Duplicate variable name '${name.trim()}'` });
 			}
 
+			if (/\s/.test(value)) {
+				errors.push({
+					line: lineNumber,
+					message: `Whitespace is not allowed`
+				});
+			}
 			currentNames.add(name.trim());
 		});
 

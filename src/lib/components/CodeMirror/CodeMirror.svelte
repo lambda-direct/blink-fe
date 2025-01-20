@@ -104,5 +104,5 @@
 		</button>
 	</div>
 	<div bind:this={element}></div>
-	<ErrorModal {errorMessage} {showError} />
+	<ErrorModal {errorMessage} {showError} errorType="variable" />
 </div>

@@ -12,8 +12,8 @@
 	export let type: 'percent' | 'B' | 'ms' = 'B';
 	export let total: number = 0;
 	export let interval: Interval = '1h';
+	export let chartHeight: number = 240;
 
-	let chartHeight: number = 240;
 	let maxChartPoint: number;
 	let values: number[] = [];
 	let labelIndices: number[];

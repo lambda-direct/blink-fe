@@ -13,7 +13,15 @@ const API = {
 		serviceId: string,
 		environmentVariableId: string
 	) =>
-		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/environmentVariables/${environmentVariableId}`
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/environmentVariables/${environmentVariableId}`,
+	DOMAINS: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/domains`,
+	DOMAIN: (instanceId: string, projectId: string, serviceId: string, domainId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/domains/${domainId}`,
+	PORT_MAPPINGS: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/portMappings`,
+	PORT_MAPPING: (instanceId: string, projectId: string, serviceId: string, portMappingId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/portMappings/${portMappingId}`
 };
 
 export interface Service {
@@ -21,6 +29,7 @@ export interface Service {
 	projectId: string;
 	name: string;
 	type: 'deployment' | 'storage';
+	imageName: string;
 	commandWithArguments: string | null;
 	createdAt: number;
 }
@@ -30,14 +39,7 @@ export interface GetServicesResponse {
 
 export interface GetServiceResponse {
 	service: Service;
-	portMappings: {
-		id: string;
-		hostAddress: string;
-		hostPort: number;
-		containerPort: number;
-		protocol: 'http' | 'tcp' | 'udp';
-		createdAt: number;
-	}[];
+	portMappings: PortMapping[];
 	environmentVariables: EnvironmentVariable[];
 	bindMounts: {
 		id: string;
@@ -45,12 +47,7 @@ export interface GetServiceResponse {
 		destinationPath: string;
 		createdAt: number;
 	}[];
-	domains: {
-		id: string;
-		name: string;
-		isTlsEnabled: boolean;
-		createdAt: number;
-	}[];
+	domains: Domain[];
 }
 export interface EnvironmentVariable {
 	id: string;
@@ -70,6 +67,57 @@ export interface EnvironmentVariablesRequestBody {
 		value: string;
 	}[];
 	restart: boolean;
+}
+
+export interface Domain {
+	id: string;
+	name: string;
+	email: string | null;
+	isTlsEnabled: boolean;
+	createdAt: number;
+}
+
+export interface GetDomainsResponse {
+	domains: Domain[];
+}
+
+export interface GetDomainResponse {
+	domain: Domain;
+}
+
+export interface CreateDomainRequestBody {
+	domain: {
+		name: string | null;
+		email: string | null;
+		isTlsEnabled: boolean;
+	};
+}
+
+export interface PortMapping {
+	id: string;
+	hostAddress: string;
+	hostPort: number;
+	containerPort: number;
+	protocol: 'http' | 'tcp' | 'udp';
+	createdAt: number;
+}
+
+export interface CreatePortMappingRequestBody {
+	portMapping: {
+		hostAddress: string;
+		hostPort: number;
+		containerPort: number;
+		protocol: 'http' | 'tcp' | 'udp';
+	};
+}
+
+export interface UpdatePortMappingRequestBody {
+	portMapping: {
+		hostAddress?: string;
+		hostPort?: number;
+		containerPort?: number;
+		protocol?: 'http' | 'tcp' | 'udp';
+	};
 }
 
 function getServices(instanceId: string, projectId: string) {
@@ -109,10 +157,96 @@ function createEnvironmentVariables(
 	);
 }
 
+function getDomains(instanceId: string, projectId: string, serviceId: string) {
+	return axiosCfg.get<GetDomainsResponse>(API.DOMAINS(instanceId, projectId, serviceId));
+}
+
+function getDomain(instanceId: string, projectId: string, serviceId: string, domainId: string) {
+	return axiosCfg.get<GetDomainResponse>(API.DOMAIN(instanceId, projectId, serviceId, domainId));
+}
+
+function createDomain(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	requestBody: CreateDomainRequestBody
+) {
+	return axiosCfg.post<GetDomainResponse>(
+		API.DOMAINS(instanceId, projectId, serviceId),
+		requestBody
+	);
+}
+
+function deleteDomain(instanceId: string, projectId: string, serviceId: string, domainId: string) {
+	return axiosCfg.delete<GetDomainResponse>(API.DOMAIN(instanceId, projectId, serviceId, domainId));
+}
+
+function getPortMappings(instanceId: string, projectId: string, serviceId: string) {
+	return axiosCfg.get<{ portMappings: PortMapping[] }>(
+		API.PORT_MAPPINGS(instanceId, projectId, serviceId)
+	);
+}
+
+function getPortMapping(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	portMappingId: string
+) {
+	return axiosCfg.get<{ portMapping: PortMapping }>(
+		API.PORT_MAPPING(instanceId, projectId, serviceId, portMappingId)
+	);
+}
+
+function createPortMapping(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	requestBody: CreatePortMappingRequestBody
+) {
+	return axiosCfg.post<{ portMapping: PortMapping }>(
+		API.PORT_MAPPINGS(instanceId, projectId, serviceId),
+		requestBody
+	);
+}
+
+function updatePortMapping(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	portMappingId: string,
+	requestBody: UpdatePortMappingRequestBody
+) {
+	return axiosCfg.patch<{ portMapping: PortMapping }>(
+		API.PORT_MAPPING(instanceId, projectId, serviceId, portMappingId),
+		requestBody
+	);
+}
+
+function deletePortMapping(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	portMappingId: string
+) {
+	return axiosCfg.delete<{ portMapping: PortMapping }>(
+		API.PORT_MAPPING(instanceId, projectId, serviceId, portMappingId)
+	);
+}
+
 export {
 	getServices,
 	getService,
 	getEnvironmentVariables,
 	getEnvironmentVariable,
-	createEnvironmentVariables
+	createEnvironmentVariables,
+	getDomains,
+	getDomain,
+	createDomain,
+	deleteDomain,
+	getPortMappings,
+	getPortMapping,
+	createPortMapping,
+	updatePortMapping,
+	deletePortMapping
 };

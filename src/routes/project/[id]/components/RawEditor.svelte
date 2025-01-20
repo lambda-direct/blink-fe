@@ -3,20 +3,18 @@
 	import { getValue } from '$lib/components/CodeMirror/helper';
 	import type { FormatError } from '$lib/components/CodeMirror/types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { Circle } from 'svelte-loading-spinners'; 
 	import { Copy } from 'lucide-svelte';
 
 	export let variables: { name: string; value: string }[] = [];
-	export let onUpdate: (
-		updatedVariables: { name: string; value: string }[],
-		restart: boolean
-	) => void;
+	export let isLoading: boolean = false;
+	export let onUpdate: (updatedVariables: { name: string; value: string }[]) => void;
 	export let onCancel: () => void;
 
 	let validatedVariables: { name: string; value: string }[] = [...variables];
 	let errors: FormatError[] = [];
 	let format: 'env' | 'json' = 'env';
 	let copySuccess = false;
-	let restart = false;
 
 	const handleUpdateVariables = (event: CustomEvent<{ name: string; value: string }[]>) => {
 		validatedVariables = event.detail;
@@ -28,7 +26,7 @@
 
 	const handleUpdate = () => {
 		if (JSON.stringify(validatedVariables) !== JSON.stringify(variables)) {
-			onUpdate(validatedVariables, restart);
+			onUpdate(validatedVariables);
 		} else onCancel();
 	};
 
@@ -55,14 +53,6 @@
 			on:update={handleUpdateVariables}
 			on:formatChange={(event) => (format = event.detail)}
 		/>
-		<label class="mr-1 flex items-center justify-end gap-2">
-			<input
-				type="checkbox"
-				bind:checked={restart}
-				class="h-4 w-4 accent-[#853bce] opacity-25 checked:opacity-100"
-			/>
-			<span>Restart service</span>
-		</label>
 		<div class="flex justify-between gap-4">
 			<Button
 				class="hover:bg-accent flex h-9 items-center gap-1 bg-transparent px-3 font-normal text-[#A667E4] hover:text-[#A667E4]"
@@ -77,10 +67,16 @@
 					on:click={onCancel}>Cancel</Button
 				>
 				<Button
-					class="h-9 border bg-[#853bce] font-normal text-white hover:bg-[#A667E4]"
+					class="h-9 border bg-[#853bce] font-normal text-white hover:bg-[#A667E4] w-[155px]"
 					on:click={handleUpdate}
-					disabled={errors.length > 0}>Update Variables</Button
+					disabled={errors.length > 0 || isLoading}
 				>
+					{#if isLoading}
+						<Circle size="20" color="white"/>
+					{:else}
+						Update Variables
+					{/if}
+				</Button>
 			</div>
 		</div>
 	</div>

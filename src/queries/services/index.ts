@@ -5,7 +5,9 @@ import {
 	getEnvironmentVariables,
 	getEnvironmentVariable,
 	type EnvironmentVariablesRequestBody,
-	createEnvironmentVariables
+	createEnvironmentVariables,
+	getDomains,
+	getPortMappings
 } from '../../api/services';
 
 export const useServices = (instanceId: string, projectId: string) => {
@@ -76,9 +78,18 @@ export const useAddEnvironmentVariable = (
 	serviceId: string
 ) => {
 	return createMutation({
-		mutationFn: async ({ name, value }: { name: string; value: string }) => {
+		mutationFn: async ({
+			name,
+			value,
+			restart
+		}: {
+			name: string;
+			value: string;
+			restart: boolean;
+		}) => {
 			const requestBody: EnvironmentVariablesRequestBody = {
-				environmentVariables: [{ name, value }]
+				environmentVariables: [{ name, value }],
+				restart
 			};
 			const response = await createEnvironmentVariables(
 				instanceId,
@@ -90,3 +101,28 @@ export const useAddEnvironmentVariable = (
 		}
 	});
 };
+
+export const useDomains = (instanceId: string, projectId: string, serviceId: string) => {
+	return createQuery({
+		queryKey: ['domains', instanceId, projectId, serviceId],
+		queryFn: async () => {
+			const response = await getDomains(instanceId, projectId, serviceId);
+			return response.data.domains;
+		},
+		enabled: !!instanceId && !!projectId,
+		retry: false
+	});
+};
+
+export const usePortMappings = (instanceId: string, projectId: string, serviceId: string) => {
+	return createQuery({
+		queryKey: ['portMappings', instanceId, projectId, serviceId],
+		queryFn: async () => {
+			const response = await getPortMappings(instanceId, projectId, serviceId);
+			return response.data.portMappings;
+		},
+		enabled: !!instanceId && !!projectId && !!serviceId,
+		retry: false
+	});
+};
+
