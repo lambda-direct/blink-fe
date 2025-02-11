@@ -3,22 +3,15 @@
 
 	export let activeTab: string;
 	export let onTabSelect: (tab: Tab) => void;
-	export let hasMounts: boolean = false;
 
 	let tabs: { name: Tab; label: string }[] = [
 		{ name: 'settings', label: 'Settings' },
 		{ name: 'variables', label: 'Variables' },
 		{ name: 'metrics', label: 'Metrics' },
-		{ name: 'logs', label: 'Logs' }
+		{ name: 'logs', label: 'Logs' },
+		{ name: 'mounts', label: 'Mounts' }
 	];
 
-	$: {
-		if (hasMounts && !tabs.find((tab) => tab.name === 'mounts')) {
-			tabs = [...tabs, { name: 'mounts', label: 'Mounts' }];
-		} else if (!hasMounts) {
-			tabs = tabs.filter((tab) => tab.name !== 'mounts');
-		}
-	}
 </script>
 
 <div class="flex flex-wrap gap-8 border-b px-6 md:px-12">

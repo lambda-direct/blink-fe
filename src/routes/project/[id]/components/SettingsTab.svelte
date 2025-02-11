@@ -410,9 +410,9 @@
 
 						<div>
 							<span class="mr-2 text-neutral-400">Host:</span>
-							<span>{portMapping.hostAddress} ➔ {portMapping.hostPort}</span>
+							<span>{portMapping.hostAddress}:{portMapping.hostPort}</span>
 						</div>
-
+						➔
 						<div>
 							<span class="mr-2 text-neutral-400">Container Port:</span>
 							<span>{portMapping.containerPort}</span>
@@ -495,7 +495,7 @@
 					</div>
 				</div>
 			{:else if isPortMappingAdding}
-				<div class="bg-accent flex w-full flex-col gap-3 rounded-lg border p-5">
+				<div class="bg-accent flex w-full flex-col gap-3 rounded-lg border p-5 overflow-x-auto">
 					<div class="flex w-full flex-wrap items-center gap-x-8 gap-y-4 text-sm">
 						<div class="flex items-center gap-2">
 							<span class="text-neutral-400">Protocol:</span>
@@ -526,14 +526,14 @@
 								type="text"
 								placeholder="Address"
 								bind:value={newHostAddress}
-								class="flex h-9 w-[150px] w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+								class="flex h-9 w-full min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
 							/>
-							<span>➔</span>
+							<span>:</span>
 							<input
 								type="number"
 								placeholder="Port"
 								bind:value={newHostPort}
-								class="flex h-9 w-[150px] w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+								class="flex h-9 min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 							/>
 						</div>
 						<div class="flex flex-1 items-center gap-2">
@@ -542,11 +542,11 @@
 								type="number"
 								placeholder="Port"
 								bind:value={newContainerPort}
-								class="flex h-9 w-[150px] w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+								class="flex h-9 min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 							/>
 						</div>
 					</div>
-					<div class="mt-3 flex flex-1 items-end justify-end gap-2">
+					<div class="flex flex-1 items-end justify-end gap-2">
 						<div class="flex gap-2">
 							<Button
 								class="flex h-9 items-center gap-1 border bg-transparent text-sm text-white hover:bg-[#33323e]"

@@ -224,10 +224,14 @@
 	<div class="mb-4 flex items-center justify-between gap-2 border-b pb-4">
 		{#if !isAdding}
 			<h2 class="text-xl font-medium text-neutral-400">
-				{#if !isLoading}
-					{variables.length} Environment
-					{variables.length === 1 ? 'Variable' : 'Variables'}
-				{/if}
+				<span class="inline-block text-center">
+					{#if isLoading}
+						<span class="opacity-0">0</span>
+					{:else}
+						{variables.length}
+					{/if}
+				</span>
+				Environment {variables.length === 1 ? 'Variable' : 'Variables'}
 			</h2>
 			<div class="flex gap-2">
 				<Button
@@ -277,110 +281,116 @@
 			>
 		{/if}
 	</div>
-	<div class="space-y-2">
-		{#each variables as { name, value, id }}
-			<div class="group/item flex w-full gap-2">
-				<div
-					class="group-hover/item:bg-accent flex h-9 w-full items-center overflow-hidden rounded-lg border px-6 text-sm"
-				>
-					<span class="truncate">{name}</span>
-				</div>
-				{#if editingVariableId === id}
-					<input
-						type="text"
-						class="group-hover/item:bg-accent flex h-9 w-full items-center overflow-hidden rounded-lg border bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
-						bind:value={editingValue}
-						bind:this={editInput}
-						spellcheck="false"
-					/>
-					<button
-						class="p-1 disabled:pointer-events-none disabled:opacity-50"
-						on:click={finishEditing}
-						disabled={/\s/.test(editingValue) || !editingValue || isUpdating}
-					>
-						{#if isUpdating}
-							<Circle size="16" color="#A667E4" />
-						{:else}
-							<Check class="h-4 w-4 text-[#853bce] hover:text-[#A667E4]" />
-						{/if}
-					</button>
-					<button
-						class="p-1"
-						on:click={() => {
-							editingVariableId = null;
-							editingValue = '';
-						}}
-					>
-						<XIcon class="h-4 w-4 text-neutral-400 hover:text-white" />
-					</button>
-				{:else}
-					<div
-						class="group-hover/item:bg-accent flex h-9 w-full items-center justify-between gap-2 overflow-hidden rounded-lg border px-6 text-sm"
-					>
-						<div class="truncate">
-							{#if $showValueMap.get(id)}
-								{value}
-							{:else}
-								<span>*****</span>
-							{/if}
-						</div>
-						<div class="hidden gap-1 text-neutral-400 group-hover/item:flex">
-							<button class="p-1" on:click={() => toggleShowValue(id)} aria-label="show value">
-								{#if $showValueMap.get(id)}
-									<Eye class="h-4 w-4 hover:text-white" />
-								{:else}
-									<EyeOff class="h-4 w-4 hover:text-white" />
-								{/if}
-							</button>
-							<button
-								class="p-1"
-								on:click={() => copyToClipboard(id, value)}
-								aria-label="copy to clipboard"
-							>
-								{#if $copiedMap.get(id)}
-									<Check class="h-4 w-4" />
-								{:else}
-									<Copy class="h-4 w-4 hover:text-white" />
-								{/if}
-							</button>
-						</div>
-					</div>
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger class="outline-none">
-							<EllipsisVertical class="h-4 w-4 text-neutral-400 group-hover/item:text-white" />
-						</DropdownMenu.Trigger>
-						<DropdownMenu.Content align="end">
-							<DropdownMenu.Item
-								class="flex items-center gap-2 text-base"
-								on:click={() => startEditing(id, value)}
-							>
-								<Pencil class="h-4 w-4" />
-								Edit
-							</DropdownMenu.Item>
-							<DropdownMenu.Item
-								class="flex items-center gap-2 text-base"
-								style="color: #b62d2b;"
-								on:click={() => openDeleteModal(name)}
-							>
-								<Trash2Icon class="h-4 w-4" />
-								Delete
-							</DropdownMenu.Item>
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
-				{/if}
-			</div>
-		{/each}
-		<div class="flex flex-col">
-			<label class="mt-2 flex items-center justify-end gap-2">
-				<input
-					type="checkbox"
-					bind:checked={restart}
-					class="h-4 w-4 accent-[#853bce] opacity-30 checked:opacity-100"
-				/>
-				<p class="text-neutral-400">Restart Service After Update</p>
-			</label>
+	{#if isLoading}
+		<div class="flex h-12 items-center justify-center">
+			<Circle size="24" color="#4B5563" />
 		</div>
-	</div>
+	{:else}
+		<div class="space-y-2">
+			{#each variables as { name, value, id }}
+				<div class="group/item flex w-full gap-2">
+					<div
+						class="group-hover/item:bg-accent flex h-9 w-full items-center overflow-hidden rounded-lg border px-6 text-sm"
+					>
+						<span class="truncate">{name}</span>
+					</div>
+					{#if editingVariableId === id}
+						<input
+							type="text"
+							class="group-hover/item:bg-accent flex h-9 w-full items-center overflow-hidden rounded-lg border bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+							bind:value={editingValue}
+							bind:this={editInput}
+							spellcheck="false"
+						/>
+						<button
+							class="p-1 disabled:pointer-events-none disabled:opacity-50"
+							on:click={finishEditing}
+							disabled={/\s/.test(editingValue) || !editingValue || isUpdating}
+						>
+							{#if isUpdating}
+								<Circle size="16" color="#A667E4" />
+							{:else}
+								<Check class="h-4 w-4 text-[#853bce] hover:text-[#A667E4]" />
+							{/if}
+						</button>
+						<button
+							class="p-1"
+							on:click={() => {
+								editingVariableId = null;
+								editingValue = '';
+							}}
+						>
+							<XIcon class="h-4 w-4 text-neutral-400 hover:text-white" />
+						</button>
+					{:else}
+						<div
+							class="group-hover/item:bg-accent flex h-9 w-full items-center justify-between gap-2 overflow-hidden rounded-lg border px-6 text-sm"
+						>
+							<div class="truncate">
+								{#if $showValueMap.get(id)}
+									{value}
+								{:else}
+									<span>*****</span>
+								{/if}
+							</div>
+							<div class="hidden gap-1 text-neutral-400 group-hover/item:flex">
+								<button class="p-1" on:click={() => toggleShowValue(id)} aria-label="show value">
+									{#if $showValueMap.get(id)}
+										<Eye class="h-4 w-4 hover:text-white" />
+									{:else}
+										<EyeOff class="h-4 w-4 hover:text-white" />
+									{/if}
+								</button>
+								<button
+									class="p-1"
+									on:click={() => copyToClipboard(id, value)}
+									aria-label="copy to clipboard"
+								>
+									{#if $copiedMap.get(id)}
+										<Check class="h-4 w-4" />
+									{:else}
+										<Copy class="h-4 w-4 hover:text-white" />
+									{/if}
+								</button>
+							</div>
+						</div>
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger class="outline-none">
+								<EllipsisVertical class="h-4 w-4 text-neutral-400 group-hover/item:text-white" />
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="end">
+								<DropdownMenu.Item
+									class="flex items-center gap-2 text-base"
+									on:click={() => startEditing(id, value)}
+								>
+									<Pencil class="h-4 w-4" />
+									Edit
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									class="flex items-center gap-2 text-base"
+									style="color: #b62d2b;"
+									on:click={() => openDeleteModal(name)}
+								>
+									<Trash2Icon class="h-4 w-4" />
+									Delete
+								</DropdownMenu.Item>
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+					{/if}
+				</div>
+			{/each}
+			<div class="flex flex-col">
+				<label class="flex items-center justify-end gap-2">
+					<input
+						type="checkbox"
+						bind:checked={restart}
+						class="h-4 w-4 accent-[#853bce] opacity-30 checked:opacity-100"
+					/>
+					<p class="text-neutral-400">Restart Service After Update</p>
+				</label>
+			</div>
+		</div>
+	{/if}
 	{#if isRawEditorOpen}
 		<RawEditor
 			{variables}

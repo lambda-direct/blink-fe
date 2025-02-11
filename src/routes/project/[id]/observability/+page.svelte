@@ -17,7 +17,11 @@
 		selectedPeriod,
 		setSelectedPeriod
 	} from '../../../../stores/periodStore';
+	import { useProject } from '../../../../queries/projects';
+	import { Circle } from 'svelte-loading-spinners';
 
+	let projectName: string;
+	let projectLoading = true;
 	let cpuUsage = [] as number[];
 	let diskUsage = [] as number[];
 	let timestamps = [] as number[];
@@ -46,6 +50,18 @@
 		}
 	}
 
+	$: queryProject =
+		$selectedInstanceId && projectId ? useProject($selectedInstanceId, projectId) : null;
+
+	$: {
+		if ($queryProject) {
+			projectLoading = $queryProject.isFetching;
+			if ($queryProject.data) {
+				projectName = $queryProject.data.name;
+			}
+		}
+	}
+
 	$: queryChart = $selectedInstanceId
 		? useChartStatistics($selectedInstanceId, {
 				interval: $selectedPeriod
@@ -57,13 +73,13 @@
 			isLoading = $queryChart.isFetching;
 
 			if ($queryChart.isError) {
+				hasError = true;
 				timestamps = [];
 				cpuUsage = [];
 				memoryUsage = [];
 				diskUsage = [];
 				totalFileSystem = 0;
 				totalMemory = 0;
-				hasError = true;
 			} else if ($queryChart.data?.chart) {
 				const { chart, values } = $queryChart.data;
 				timestamps = chart.map((item) => item.timestamp);
@@ -129,7 +145,14 @@
 	<ErrorPage status={400} message="Project not found" />
 {:else}
 	<div class="flex h-full min-h-full w-full flex-col overflow-auto p-4 pb-4">
-		<div class="mb-5 flex justify-end">
+		<div class="relative mb-5 flex items-center justify-end">
+			<div class="absolute left-10 -translate-x-1/2 transform sm:left-1/2">
+				{#if projectLoading}
+					<Circle size="20" color="#4B5563"/>
+				{:else if projectName}
+					<span class="text-xl">{projectName}</span>
+				{/if}
+			</div>
 			<Select.Root selected={getSelectedObject()} onSelectedChange={handleSelectPeriod}>
 				<Select.Trigger class="w-[180px]">
 					<Select.Value placeholder="Period" />

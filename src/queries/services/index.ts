@@ -7,7 +7,8 @@ import {
 	type EnvironmentVariablesRequestBody,
 	createEnvironmentVariables,
 	getDomains,
-	getPortMappings
+	getPortMappings,
+	getBindMounts
 } from '../../api/services';
 
 export const useServices = (instanceId: string, projectId: string) => {
@@ -126,3 +127,14 @@ export const usePortMappings = (instanceId: string, projectId: string, serviceId
 	});
 };
 
+export const useBindMounts = (instanceId: string, projectId: string, serviceId: string) => {
+	return createQuery({
+		queryKey: ['bindMounts', instanceId, projectId, serviceId],
+		queryFn: async () => {
+			const response = await getBindMounts(instanceId, projectId, serviceId);
+			return response.data.bindMounts;
+		},
+		enabled: !!instanceId && !!projectId && !!serviceId,
+		retry: false
+	});
+};

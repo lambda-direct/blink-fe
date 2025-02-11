@@ -4,6 +4,7 @@
 	import type { GetProjectsResponse } from '../../api/projects';
 	import { useProjects } from '../../queries/projects';
 	import { selectedInstanceId } from '../../stores/instanceStore';
+	import { Circle } from 'svelte-loading-spinners';
 
 	let projects: GetProjectsResponse['projects'] | null = null;
 	let servicesCountMap: { [key: string]: number } = {};
@@ -30,11 +31,14 @@
 <section class="flex h-full w-full flex-col overflow-auto pt-10">
 	<div class="mx-auto w-full max-w-screen-lg px-2 lg:px-0">
 		<span class="text-xl">Projects</span>
-		<p class="text-sm text-neutral-400">Manage your projects</p>
-
-		{#if !isLoading}
+		<p class="border-b pb-4 text-sm text-neutral-400">Manage your projects</p>
+		{#if isLoading}
+			<div class="flex w-full items-center justify-center h-44 font-bold">
+				<Circle size="30" color="#1F2937" />
+			</div>
+		{:else if !isLoading}
 			{#if projects !== null}
-				<div class="mt-4 flex flex-wrap justify-center gap-4 border-t py-4 lg:justify-start">
+				<div class="flex flex-wrap justify-center gap-4 py-4 lg:justify-start">
 					{#each projects as project}
 						<ProjectCard {project} servicesCount={servicesCountMap[project.id]} />
 					{/each}
@@ -50,7 +54,7 @@
 					</button>
 				</div>
 			{:else}
-				<p class="mt-4 border-t pt-4 text-center text-xl font-medium">No projects found</p>
+				<p class="pt-4 text-center text-xl font-medium">No projects found</p>
 			{/if}
 		{/if}
 	</div>

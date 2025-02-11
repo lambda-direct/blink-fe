@@ -18,6 +18,7 @@
 	import { selectedInstanceId } from '../../../stores/instanceStore';
 	import ErrorPage from '$lib/components/ErrorPage.svelte';
 	import { onDestroy, onMount } from 'svelte';
+	import { Circle } from 'svelte-loading-spinners';
 
 	let services: GetServicesResponse['services'] = [];
 	let service: GetServiceResponse | null = null;
@@ -99,7 +100,11 @@
 
 {#if hasError}
 	<ErrorPage status={errorStatus} message={errorMessage} />
-{:else if !isLoading}
+{:else if isLoading}
+	<div class="flex h-full items-center justify-center pb-4">
+		<Circle size="30" color="#1F2937" />
+	</div>
+{:else}
 	<div class="relative flex h-full items-start justify-center overflow-y-auto pb-4">
 		<div
 			class="my-auto flex max-w-2xl flex-grow flex-wrap justify-center gap-10 transition-transform duration-300 ease-out"
@@ -143,11 +148,7 @@
 						</button>
 					</div>
 					{#if selectedServiceId}
-						<TabNav
-							{activeTab}
-							onTabSelect={handleTabSelect}
-							hasMounts={service.bindMounts && service.bindMounts.length > 0}
-						>
+						<TabNav {activeTab} onTabSelect={handleTabSelect}>
 							{#if activeTab === 'settings'}
 								{#key service.service.id}
 									<SettingsTab {projectId} {service} />
@@ -166,7 +167,11 @@
 								{/key}
 							{:else if activeTab === 'mounts'}
 								{#key service.service.id}
-									<MountsTab mounts={service.bindMounts} />
+									<MountsTab
+										{projectId}
+										serviceId={selectedServiceId}
+										on:refreshService={() => $queryServiceDetails?.refetch()}
+									/>
 								{/key}
 							{/if}
 						</TabNav>

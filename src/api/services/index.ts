@@ -21,7 +21,11 @@ const API = {
 	PORT_MAPPINGS: (instanceId: string, projectId: string, serviceId: string) =>
 		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/portMappings`,
 	PORT_MAPPING: (instanceId: string, projectId: string, serviceId: string, portMappingId: string) =>
-		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/portMappings/${portMappingId}`
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/portMappings/${portMappingId}`,
+	BIND_MOUNTS: (instanceId: string, projectId: string, serviceId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/bindMounts`,
+	BIND_MOUNT: (instanceId: string, projectId: string, serviceId: string, bindMountId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/bindMounts/${bindMountId}`
 };
 
 export interface Service {
@@ -41,12 +45,7 @@ export interface GetServiceResponse {
 	service: Service;
 	portMappings: PortMapping[];
 	environmentVariables: EnvironmentVariable[];
-	bindMounts: {
-		id: string;
-		sourcePath: string;
-		destinationPath: string;
-		createdAt: number;
-	}[];
+	bindMounts: BindMount[];
 	domains: Domain[];
 }
 export interface EnvironmentVariable {
@@ -67,6 +66,28 @@ export interface EnvironmentVariablesRequestBody {
 		value: string;
 	}[];
 	restart: boolean;
+}
+
+export interface BindMount {
+	id: string;
+	sourcePath: string;
+	destinationPath: string;
+	createdAt: number;
+}
+
+export interface CreateBindMountRequestBody {
+	bindMount: {
+		sourcePath: string;
+		destinationPath: string;
+	};
+	restart: boolean;
+}
+
+export interface UpdateBindMountRequestBody {
+	bindMount: {
+		sourcePath?: string;
+		destinationPath?: string;
+	};
 }
 
 export interface Domain {
@@ -234,6 +255,62 @@ function deletePortMapping(
 	);
 }
 
+function getBindMounts(instanceId: string, projectId: string, serviceId: string) {
+	return axiosCfg.get<{ bindMounts: BindMount[] }>(
+		API.BIND_MOUNTS(instanceId, projectId, serviceId)
+	);
+}
+
+function getBindMount(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	bindMountId: string
+) {
+	return axiosCfg.get<{ bindMount: BindMount }>(
+		API.BIND_MOUNT(instanceId, projectId, serviceId, bindMountId)
+	);
+}
+
+function createBindMount(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	requestBody: CreateBindMountRequestBody
+) {
+	return axiosCfg.post<{ bindMount: BindMount }>(
+		API.BIND_MOUNTS(instanceId, projectId, serviceId),
+		requestBody
+	);
+}
+
+function updateBindMount(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	bindMountId: string,
+	requestBody: UpdateBindMountRequestBody,
+	restart: boolean
+) {
+	return axiosCfg.patch<{ bindMount: BindMount }>(
+		API.BIND_MOUNT(instanceId, projectId, serviceId, bindMountId),
+		{ ...requestBody, restart }
+	);
+}
+
+function deleteBindMount(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	bindMountId: string,
+	restart?: 'true' | 'false'
+) {
+	return axiosCfg.delete<{ bindMount: BindMount }>(
+		API.BIND_MOUNT(instanceId, projectId, serviceId, bindMountId),
+		{ params: { restart } }
+	);
+}
+
 export {
 	getServices,
 	getService,
@@ -248,5 +325,10 @@ export {
 	getPortMapping,
 	createPortMapping,
 	updatePortMapping,
-	deletePortMapping
+	deletePortMapping,
+	getBindMounts,
+	getBindMount,
+	createBindMount,
+	updateBindMount,
+	deleteBindMount
 };

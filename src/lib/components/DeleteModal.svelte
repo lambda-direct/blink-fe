@@ -3,7 +3,7 @@
 	import { Circle } from 'svelte-loading-spinners';
 
 	export let type: string = 'variable';
-	export let name: string;
+	export let name: string = '';
 	export let isLoading: boolean = false;
 	export let onDelete: () => void;
 	export let onCancel: () => void;
@@ -13,8 +13,7 @@
 	<div class="bg-card flex w-full max-w-md flex-col gap-6 rounded-lg p-6 text-start">
 		<h2 class="text-xl">Delete {type}</h2>
 		<p>
-			Are you sure you want to delete <span class="text-[#853bce]">{name}</span>
-			{type} ?
+			Are you sure you want to delete the {type} <span class="text-[#853bce]">{name} </span>?
 			<br />
 			Once deleted, it will be gone forever
 		</p>
@@ -30,7 +29,8 @@
 				disabled={isLoading}
 			>
 				{#if isLoading}
-					<Circle size="16" color="white" />{:else}
+					<Circle size="16" color="white" />
+				{:else}
 					Delete
 				{/if}
 			</Button>

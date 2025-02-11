@@ -3,8 +3,9 @@
 	import { getValue } from '$lib/components/CodeMirror/helper';
 	import type { FormatError } from '$lib/components/CodeMirror/types';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { Circle } from 'svelte-loading-spinners'; 
+	import { Circle } from 'svelte-loading-spinners';
 	import { Copy } from 'lucide-svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	export let variables: { name: string; value: string }[] = [];
 	export let isLoading: boolean = false;
@@ -40,6 +41,21 @@
 			console.error('Failed to copy:', err);
 		}
 	};
+
+	const handleKeydown = (event: KeyboardEvent) => {
+		if (event.key === 'Escape') {
+			event.stopPropagation();
+			onCancel();
+		}
+	};
+
+	onMount(() => {
+		document.addEventListener('keydown', handleKeydown, { capture: true });
+	});
+
+	onDestroy(() => {
+		document.removeEventListener('keydown', handleKeydown, { capture: true });
+	});
 </script>
 
 <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -67,12 +83,12 @@
 					on:click={onCancel}>Cancel</Button
 				>
 				<Button
-					class="h-9 border bg-[#853bce] font-normal text-white hover:bg-[#A667E4] w-[155px]"
+					class="h-9 w-[155px] border bg-[#853bce] font-normal text-white hover:bg-[#A667E4]"
 					on:click={handleUpdate}
 					disabled={errors.length > 0 || isLoading}
 				>
 					{#if isLoading}
-						<Circle size="20" color="white"/>
+						<Circle size="20" color="white" />
 					{:else}
 						Update Variables
 					{/if}

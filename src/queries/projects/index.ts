@@ -1,6 +1,18 @@
 import { createQuery } from '@tanstack/svelte-query';
-import { getProjects } from '../../api/projects';
+import { getProject, getProjects } from '../../api/projects';
 import { getServices } from '../../api/services';
+
+export const useProject = (instanceId: string, projectId: string) => {
+	return createQuery({
+		queryKey: ['project', instanceId, projectId],
+		queryFn: async () => {
+			const response = await getProject(instanceId, projectId);
+			return response.data.project;
+		},
+		enabled: !!instanceId && !!projectId,
+		retry: false
+	});
+};
 
 export const useProjects = (instanceId: string, fetchServicesCount = false) => {
 	let accessToken: string | null = null;
