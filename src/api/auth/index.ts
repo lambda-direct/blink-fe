@@ -1,8 +1,9 @@
 import axiosCfg from '../config';
+import axios, { type AxiosResponse } from 'axios';
 
 const API = {
 	AUTH: 'auth',
-	REFRESH: 'auth/refresh'
+	REFRESH: '/auth/refresh'
 };
 
 export interface AccessTokenResponse {
@@ -17,10 +18,8 @@ function getAccessToken(token: string | null, code: string) {
 	return axiosCfg.get<AccessTokenResponse>(API.AUTH, { params });
 }
 
-function refreshAccessToken(refreshToken: string) {
-	return axiosCfg.post<AccessTokenResponse>(API.REFRESH, {
-		refreshToken
-	});
+async function refreshAccessToken(baseUrl: string, refreshToken: string): Promise<AxiosResponse<AccessTokenResponse>> {
+	return axios.post<AccessTokenResponse>(`${baseUrl}${API.REFRESH}`, { refreshToken });
 }
 
 export { getAccessToken, refreshAccessToken };

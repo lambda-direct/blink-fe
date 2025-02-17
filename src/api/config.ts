@@ -1,9 +1,9 @@
 import axios, { type AxiosInstance } from 'axios';
+import { clearError, setError } from '../stores/errorStore';
 import { refreshAccessToken } from './auth';
 
 const BASE_URL = import.meta.env.VITE_BASE_API_URL;
 const HTTPS_BASE_URL = `https://${BASE_URL}`;
-
 
 const instance: AxiosInstance = axios.create({
 	baseURL: HTTPS_BASE_URL,
@@ -25,24 +25,25 @@ instance.interceptors.request.use(
 		return config;
 	},
 	(error) => {
-		console.error('Request Interceptor Error:', error);
 		return Promise.reject(error);
 	}
 );
 
 instance.interceptors.response.use(
-	(response) => response,
+	(response) => {
+		clearError();
+		return response;
+	},
 	async (error) => {
 		const originalRequest = error.config;
-
-		if (originalRequest && error.response?.status === 401 && !originalRequest._retry) {
+		if (error.response?.status === 401 && !originalRequest._retry) {
 			originalRequest._retry = true;
 
 			try {
 				const refreshToken = localStorage.getItem('refreshToken');
 				if (!refreshToken) throw new Error('No refresh token available');
 
-				const response = await refreshAccessToken(refreshToken);
+				const response = await refreshAccessToken(HTTPS_BASE_URL, refreshToken);
 				const { accessToken, refreshToken: newRefreshToken } = response.data;
 
 				localStorage.setItem('accessToken', accessToken);
@@ -50,15 +51,15 @@ instance.interceptors.response.use(
 
 				instance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 				originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
-
+				clearError();
 				return instance(originalRequest);
 			} catch (refreshError) {
+				setError('Authorization failed. Please log in again');
+				// window.location.href = '/';
 				return Promise.reject(refreshError);
 			}
 		}
-
 		return Promise.reject(error);
 	}
 );
-
 export default instance;

@@ -105,7 +105,7 @@
 
 	@keyframes floatInGeneral {
 		to {
-			top: 70px;
+			top: 73px;
 		}
 	}
 </style>
