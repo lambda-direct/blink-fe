@@ -107,10 +107,16 @@ export interface GetDomainResponse {
 }
 
 export interface CreateDomainRequestBody {
+	domain:
+		| { name: string; email: string; isTlsEnabled: boolean }
+		| { name: null; email: null; isTlsEnabled: boolean };
+}
+
+export interface UpdateDomainRequestBody {
 	domain: {
-		name: string | null;
-		email: string | null;
-		isTlsEnabled: boolean;
+		name?: string;
+		email?: string | null;
+		isTlsEnabled?: boolean;
 	};
 }
 
@@ -194,6 +200,19 @@ function createDomain(
 ) {
 	return axiosCfg.post<GetDomainResponse>(
 		API.DOMAINS(instanceId, projectId, serviceId),
+		requestBody
+	);
+}
+
+function updateDomain(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	domainId: string,
+	requestBody: UpdateDomainRequestBody
+) {
+	return axiosCfg.patch<GetDomainResponse>(
+		API.DOMAIN(instanceId, projectId, serviceId, domainId),
 		requestBody
 	);
 }
@@ -320,6 +339,7 @@ export {
 	getDomains,
 	getDomain,
 	createDomain,
+	updateDomain,
 	deleteDomain,
 	getPortMappings,
 	getPortMapping,

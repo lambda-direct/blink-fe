@@ -281,12 +281,8 @@
 			>
 		{/if}
 	</div>
-	{#if isLoading}
-		<div class="flex h-12 items-center justify-center">
-			<Circle size="24" color="#4B5563" />
-		</div>
-	{:else}
-		<div class="space-y-2">
+	<div class="space-y-2">
+		{#if !isLoading}
 			{#each variables as { name, value, id }}
 				<div class="group/item flex w-full gap-2">
 					<div
@@ -379,18 +375,23 @@
 					{/if}
 				</div>
 			{/each}
-			<div class="flex flex-col">
-				<label class="flex items-center justify-end gap-2">
-					<input
-						type="checkbox"
-						bind:checked={restart}
-						class="h-4 w-4 accent-[#853bce] opacity-30 checked:opacity-100"
-					/>
-					<p class="text-neutral-400">Restart Service After Update</p>
-				</label>
-			</div>
+		{/if}
+		<div class="flex flex-col">
+			<label class="flex items-center justify-end gap-2">
+				<input
+					type="checkbox"
+					bind:checked={restart}
+					class="h-4 w-4 accent-[#853bce] opacity-30 checked:opacity-100"
+				/>
+				<p class="text-neutral-400">Restart Service After Update</p>
+			</label>
 		</div>
-	{/if}
+		{#if isLoading}
+			<div class="flex h-12 items-center justify-center">
+				<Circle size="24" color="#4B5563" />
+			</div>
+		{/if}
+	</div>
 	{#if isRawEditorOpen}
 		<RawEditor
 			{variables}

@@ -179,21 +179,21 @@
 				on:click={startAdding}><Plus class="h-4 w-4" /> New Bind Mount</Button
 			>
 		</div>
+		<div class="flex flex-col">
+			<label class="flex items-center justify-end gap-2">
+				<input
+					type="checkbox"
+					bind:checked={restart}
+					class="h-4 w-4 accent-[#853bce] opacity-30 checked:opacity-100"
+				/>
+				<p class="text-neutral-400">Restart Service After Update</p>
+			</label>
+		</div>
 		{#if isLoading}
 			<div class="flex h-12 items-center justify-center">
 				<Circle size="24" color="#4B5563" />
 			</div>
 		{:else}
-			<div class="flex flex-col">
-				<label class="flex items-center justify-end gap-2">
-					<input
-						type="checkbox"
-						bind:checked={restart}
-						class="h-4 w-4 accent-[#853bce] opacity-30 checked:opacity-100"
-					/>
-					<p class="text-neutral-400">Restart Service After Update</p>
-				</label>
-			</div>
 			{#if isBindMountAdding}
 				<div class="bg-accent mb-2 flex flex-col gap-4 rounded-lg border p-6">
 					<div class="ml-10 flex flex-col gap-4 text-sm">

@@ -19,10 +19,13 @@
 		createPortMapping,
 		deleteDomain,
 		deletePortMapping,
+		updateDomain,
 		updatePortMapping,
+		type CreateDomainRequestBody,
 		type Domain,
 		type GetServiceResponse,
-		type PortMapping
+		type PortMapping,
+		type UpdateDomainRequestBody
 	} from '../../../../api/services';
 	import { selectedInstanceId } from '../../../../stores/instanceStore';
 	import { useDomains, usePortMappings } from '../../../../queries/services';
@@ -39,6 +42,16 @@
 	let newDomainEmail = '';
 	let isTlsEnabled = true;
 	let selectedDomain: Domain | null = null;
+
+	let isEditingDomain = false;
+	let updatedDomainName = '';
+	let updatedDomainEmail: string | null = '';
+	let updatedIsTlsEnabled = true;
+	let editingDomain: Domain | null = null;
+
+	const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+	const domainNameRegex =
+		/^(((?!-))(xn--|_)?[a-z0-9-]{0,61}[a-z0-9]{1,1}\.)*(xn--)?([a-z0-9][a-z0-9\-]{0,60}|[a-z0-9\-]{1,30}\.[a-z]{2,})$/;
 
 	let portMappings: PortMapping[] = [];
 	let isPortMappingAdding = false;
@@ -68,6 +81,26 @@
 			domains = $queryDomains.data;
 		}
 	}
+
+	$: isAddDomainDisabled = !!(
+		(newDomainName && !newDomainEmail) ||
+		(!newDomainName && newDomainEmail) ||
+		(newDomainName && !domainNameRegex.test(newDomainName)) ||
+		(newDomainEmail && !emailRegex.test(newDomainEmail)) ||
+		(isTlsEnabled && !newDomainEmail) ||
+		isUpdating
+	);
+
+	$: isUpdateDomainDisabled = !!(
+		isUpdating ||
+		!updatedDomainName ||
+		(updatedIsTlsEnabled && !updatedDomainEmail) ||
+		(updatedDomainEmail && !emailRegex.test(updatedDomainEmail)) ||
+		(updatedDomainName && !domainNameRegex.test(updatedDomainName)) ||
+		(updatedDomainName === editingDomain?.name &&
+			updatedDomainEmail === editingDomain?.email &&
+			updatedIsTlsEnabled === editingDomain?.isTlsEnabled)
+	);
 
 	$: queryPortMappings = $selectedInstanceId
 		? usePortMappings($selectedInstanceId, projectId, service.service.id)
@@ -111,13 +144,13 @@
 	async function handleAddDomain() {
 		isUpdating = true;
 		try {
-			await createDomain($selectedInstanceId!, projectId, service.service.id, {
-				domain: {
-					name: newDomainName || null,
-					email: newDomainEmail || null,
-					isTlsEnabled
-				}
-			});
+			const requestBody: CreateDomainRequestBody = {
+				domain:
+					newDomainName && newDomainEmail
+						? { name: newDomainName, email: newDomainEmail, isTlsEnabled }
+						: { name: null, email: null, isTlsEnabled }
+			};
+			await createDomain($selectedInstanceId!, projectId, service.service.id, requestBody);
 			$queryDomains?.refetch();
 			cancelAddingDomain();
 		} catch (error) {
@@ -125,6 +158,57 @@
 		} finally {
 			isUpdating = false;
 		}
+	}
+
+	function openEditDomainModal(domain: Domain) {
+		isDomainAdding = false;
+		isEditingDomain = true;
+		editingDomain = { ...domain };
+		console.log(editingDomain);
+		updatedDomainName = domain.name;
+		updatedDomainEmail = domain.email;
+		updatedIsTlsEnabled = domain.isTlsEnabled;
+	}
+
+	async function handleUpdateDomain() {
+		if (!editingDomain || !$selectedInstanceId) return;
+		isUpdating = true;
+		try {
+			const requestBody: UpdateDomainRequestBody = { domain: {} };
+
+			if (updatedDomainName !== editingDomain.name) {
+				requestBody.domain.name = updatedDomainName;
+			}
+			if (updatedDomainEmail !== editingDomain.email) {
+				requestBody.domain.email = updatedDomainEmail || null;
+			}
+			if (updatedIsTlsEnabled !== editingDomain.isTlsEnabled) {
+				requestBody.domain.isTlsEnabled = updatedIsTlsEnabled;
+			}
+
+			await updateDomain(
+				$selectedInstanceId,
+				projectId,
+				service.service.id,
+				editingDomain.id,
+				requestBody
+			);
+
+			$queryDomains?.refetch();
+			cancelEditingDomain();
+		} catch (error) {
+			console.error('Failed to update domain:', error);
+		} finally {
+			isUpdating = false;
+		}
+	}
+
+	function cancelEditingDomain() {
+		isEditingDomain = false;
+		editingDomain = null;
+		updatedDomainName = '';
+		updatedDomainEmail = '';
+		updatedIsTlsEnabled = true;
 	}
 
 	function cancelAddingDomain() {
@@ -280,51 +364,108 @@
 			<h2 class="text-xl font-medium">Networking</h2>
 		</div>
 		{#each domains as domain}
-			<div class="flex w-full gap-2">
-				<div
-					class="ml-16 flex h-fit min-h-14 w-full items-center gap-8 overflow-x-auto text-nowrap rounded-lg border p-5 text-sm"
-				>
-					<div class="flex flex-row items-center gap-2 text-neutral-400">
-						<Globe class="h-4 w-4" />
-						<span>Domain:</span>
-						<span class="cursor-pointer text-white hover:underline">https://{domain.name}</span>
-					</div>
-					{#if domain.isTlsEnabled !== undefined}
-						<div>
-							<span class="mr-2 text-neutral-400">TLS:</span>
-							<span>{domain.isTlsEnabled ? 'Enabled' : 'Disabled'}</span>
+			{#if editingDomain?.id === domain.id && isEditingDomain}
+				<div class="ml-16 mr-6 flex gap-2">
+					<div class="bg-accent flex w-full flex-col gap-3 overflow-x-auto rounded-lg border p-5">
+						<div class="flex items-center gap-2">
+							<input
+								type="text"
+								placeholder="Name"
+								bind:value={updatedDomainName}
+								class="flex h-9 w-full min-w-[200px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+							/>
+							<input
+								type="email"
+								placeholder="Email"
+								bind:value={updatedDomainEmail}
+								class="flex h-9 w-full min-w-[200px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+							/>
 						</div>
-					{/if}
+						<label class="ml-1 flex items-center gap-2">
+							<input
+								type="checkbox"
+								bind:checked={updatedIsTlsEnabled}
+								class="h-4 w-4 accent-[#853bce] opacity-70 checked:opacity-100"
+							/>
+							<p>Enable TLS</p>
+						</label>
+						<div
+							class="mt-3 flex w-full flex-col items-end justify-between gap-4 sm:flex-row lg:flex-col xl:flex-row"
+						>
+							<p class="flex items-start gap-1 text-neutral-400">
+								{#if updatedIsTlsEnabled}
+									<CircleAlert class="max-h-w max-h-5 min-h-4 min-w-4" />
+									<span>An email is required when TLS is enabled</span>
+								{/if}
+							</p>
+							<div class="flex gap-2">
+								<Button
+									class="flex h-9 items-center gap-1 border bg-transparent text-sm text-white hover:bg-[#33323e]"
+									on:click={cancelEditingDomain}
+								>
+									Cancel
+								</Button>
+								<Button
+									class="flex h-9 w-[135px] items-center gap-1 bg-[#853bce] px-3 text-sm text-white hover:bg-[#A667E4]"
+									on:click={handleUpdateDomain}
+									disabled={isUpdateDomainDisabled}
+								>
+									{#if isUpdating}
+										<Circle size="16" color="white" />
+									{:else}
+										Update Domain
+									{/if}
+								</Button>
+							</div>
+						</div>
+					</div>
 				</div>
-				<DropdownMenu.Root>
-					<DropdownMenu.Trigger class="outline-none">
-						<EllipsisVertical class="h-4 w-4 text-neutral-400 group-hover/item:text-white" />
-					</DropdownMenu.Trigger>
-					<DropdownMenu.Content align="end">
-						<DropdownMenu.Item
-							class="flex items-center gap-2 text-base"
-							on:click={() => {}}
-							disabled
-						>
-							<Pencil class="h-4 w-4" />
-							Edit
-						</DropdownMenu.Item>
-						<DropdownMenu.Item
-							class="flex items-center gap-2 text-base"
-							style="color: #b62d2b;"
-							on:click={() => openDeleteDomainModal(domain)}
-						>
-							<Trash2Icon class="h-4 w-4" />
-							Delete
-						</DropdownMenu.Item>
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
-			</div>
+			{:else}
+				<div class="flex w-full gap-2">
+					<div
+						class="ml-16 flex h-fit min-h-14 w-full items-center gap-8 overflow-x-auto text-nowrap rounded-lg border p-5 text-sm"
+					>
+						<div class="flex flex-row items-center gap-2 text-neutral-400">
+							<Globe class="h-4 w-4" />
+							<span>Domain:</span>
+							<span class="cursor-pointer text-white hover:underline">https://{domain.name}</span>
+						</div>
+						{#if domain.isTlsEnabled !== undefined}
+							<div>
+								<span class="mr-2 text-neutral-400">TLS:</span>
+								<span>{domain.isTlsEnabled ? 'Enabled' : 'Disabled'}</span>
+							</div>
+						{/if}
+					</div>
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger class="outline-none">
+							<EllipsisVertical class="h-4 w-4 text-neutral-400 group-hover/item:text-white" />
+						</DropdownMenu.Trigger>
+						<DropdownMenu.Content align="end">
+							<DropdownMenu.Item
+								class="flex items-center gap-2 text-base"
+								on:click={() => openEditDomainModal(domain)}
+							>
+								<Pencil class="h-4 w-4" />
+								Edit
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								class="flex items-center gap-2 text-base"
+								style="color: #b62d2b;"
+								on:click={() => openDeleteDomainModal(domain)}
+							>
+								<Trash2Icon class="h-4 w-4" />
+								Delete
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
+				</div>
+			{/if}
 		{/each}
 		{#each portMappings as portMapping}
 			{#if editingPortMapping === portMapping && isEditingPortMapping}
 				<div class="flex w-full">
-					<div class="bg-accent ml-16 mr-6 flex w-full flex-col gap-3 rounded-lg border p-5">
+					<div class="bg-accent ml-16 mr-6 flex w-full flex-col gap-2 rounded-lg border p-5">
 						<div class="flex w-full flex-wrap items-center gap-x-8 gap-y-4 text-sm">
 							<div class="flex items-center gap-2">
 								<span class="text-neutral-400">Protocol:</span>
@@ -355,14 +496,14 @@
 									type="text"
 									placeholder="Address"
 									bind:value={newHostAddress}
-									class="flex h-9 w-[150px] w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+									class="flex h-9 min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
 								/>
 								<span>➔</span>
 								<input
 									type="number"
 									placeholder="Port"
 									bind:value={newHostPort}
-									class="flex h-9 w-[150px] w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+									class="flex h-9 min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 								/>
 							</div>
 							<div class="flex flex-1 items-center gap-2">
@@ -371,7 +512,7 @@
 									type="number"
 									placeholder="Port"
 									bind:value={newContainerPort}
-									class="flex h-9 w-[150px] w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+									class="flex h-9 min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm [appearance:textfield] hover:border-neutral-400 focus:border-[#853bce] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
 								/>
 							</div>
 						</div>
@@ -384,14 +525,14 @@
 									Cancel
 								</Button>
 								<Button
-									class="flex h-9 w-[150px] items-center gap-1 bg-[#853bce] px-3 text-sm text-white hover:bg-[#A667E4]"
+									class="flex h-9 w-[174px] items-center gap-1 bg-[#853bce] px-3 text-sm text-white hover:bg-[#A667E4]"
 									on:click={handleSavePortMapping}
 									disabled={isAddPortMappingDisabled || isUpdating || !hasChanges}
 								>
 									{#if isUpdating}
 										<Circle size="16" color="white" />
 									{:else}
-										Save Port Mapping
+										Update Port Mapping
 									{/if}
 								</Button>
 							</div>
@@ -445,19 +586,19 @@
 		{/each}
 		<div class="ml-16 mr-6 flex gap-2">
 			{#if isDomainAdding}
-				<div class="bg-accent flex w-full flex-col gap-3 rounded-lg border p-5">
+				<div class="bg-accent flex w-full flex-col gap-3 overflow-x-auto rounded-lg border p-5">
 					<div class="flex items-center gap-2">
 						<input
 							type="text"
 							placeholder="Name"
 							bind:value={newDomainName}
-							class="flex h-9 w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+							class="flex h-9 w-full min-w-[200px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
 						/>
 						<input
 							type="email"
 							placeholder="Email"
 							bind:value={newDomainEmail}
-							class="flex h-9 w-full items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+							class="flex h-9 w-full min-w-[200px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
 						/>
 					</div>
 					<label class="ml-1 flex items-center gap-2">
@@ -468,10 +609,16 @@
 						/>
 						<p>Enable TLS</p>
 					</label>
-					<div class="mt-3 flex items-end justify-between gap-2">
+					<div
+						class="mt-3 flex w-full flex-col items-end justify-between gap-4 sm:flex-row lg:flex-col xl:flex-row"
+					>
 						<p class="flex items-start gap-1 text-neutral-400">
 							<CircleAlert class="max-h-w max-h-5 min-h-4 min-w-4" />
-							<span>Leaving name and email empty will generate a temporary domain</span>
+							{#if isTlsEnabled}
+								<span>An email is required when TLS is enabled</span>
+							{:else}
+								<span>Leaving name and email empty will generate a temporary domain</span>
+							{/if}
 						</p>
 						<div class="flex gap-2">
 							<Button
@@ -483,7 +630,7 @@
 							<Button
 								class="flex h-9 w-[112px] items-center gap-1 bg-[#853bce] px-3 text-sm text-white hover:bg-[#A667E4]"
 								on:click={handleAddDomain}
-								disabled={isUpdating}
+								disabled={isAddDomainDisabled}
 							>
 								{#if isUpdating}
 									<Circle size="16" color="white" />
@@ -495,7 +642,7 @@
 					</div>
 				</div>
 			{:else if isPortMappingAdding}
-				<div class="bg-accent flex w-full flex-col gap-3 rounded-lg border p-5 overflow-x-auto">
+				<div class="bg-accent flex w-full flex-col gap-2 overflow-x-auto rounded-lg border p-5">
 					<div class="flex w-full flex-wrap items-center gap-x-8 gap-y-4 text-sm">
 						<div class="flex items-center gap-2">
 							<span class="text-neutral-400">Protocol:</span>
@@ -526,7 +673,7 @@
 								type="text"
 								placeholder="Address"
 								bind:value={newHostAddress}
-								class="flex h-9 w-full min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
+								class="flex h-9 min-w-[150px] max-w-[150px] items-center overflow-hidden rounded-lg border border-neutral-500 bg-transparent px-6 text-sm hover:border-neutral-400 focus:border-[#853bce] focus:outline-none"
 							/>
 							<span>:</span>
 							<input
@@ -546,7 +693,7 @@
 							/>
 						</div>
 					</div>
-					<div class="flex flex-1 items-end justify-end gap-2">
+					<div class="mt-3 flex flex-1 items-end justify-end gap-2">
 						<div class="flex gap-2">
 							<Button
 								class="flex h-9 items-center gap-1 border bg-transparent text-sm text-white hover:bg-[#33323e]"
@@ -571,7 +718,12 @@
 			{:else}
 				<Button
 					class="hover:bg-accent flex h-9 items-center gap-1 border border-[#853bce] bg-transparent px-3 text-sm font-normal text-[#A667E4] hover:border-[#A667E4] hover:text-[#A667E4]"
-					on:click={() => (isDomainAdding = true)}><Plus class="h-4 w-4" /> New Domain</Button
+					on:click={() => {
+						isEditingDomain = false;
+						isDomainAdding = true;
+					}}
+				>
+					<Plus class="h-4 w-4" /> New Domain</Button
 				>
 				<Button
 					class="hover:bg-accent flex h-9 items-center gap-1 border border-[#853bce] bg-transparent px-3 text-sm font-normal text-[#A667E4] hover:border-[#A667E4] hover:text-[#A667E4]"
