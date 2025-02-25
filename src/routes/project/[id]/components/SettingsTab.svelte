@@ -164,7 +164,6 @@
 		isDomainAdding = false;
 		isEditingDomain = true;
 		editingDomain = { ...domain };
-		console.log(editingDomain);
 		updatedDomainName = domain.name;
 		updatedDomainEmail = domain.email;
 		updatedIsTlsEnabled = domain.isTlsEnabled;

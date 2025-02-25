@@ -14,6 +14,7 @@
 	import DeleteModal from '$lib/components/DeleteModal.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import { Circle } from 'svelte-loading-spinners';
+	import DirectoryTree from '$lib/components/DirectoryTree.svelte';
 
 	export let projectId: string;
 	export let serviceId: string;
@@ -168,7 +169,7 @@
 </script>
 
 <div class="flex flex-col pt-4">
-	<div class="flex flex-col gap-4">
+	<div class="flex h-full flex-col gap-4">
 		<div class="flex items-center justify-between gap-6 border-b pb-4 text-neutral-400">
 			<div class="flex items-center gap-6">
 				<CircleIcon />
@@ -234,7 +235,9 @@
 				</div>
 			{/if}
 			{#each mounts as mount}
-				<div class="bg-accent boreder group/item relative mb-2 flex flex-col gap-4 rounded-lg p-6">
+				<div
+					class="bg-accent group/item relative mb-2 flex flex-col gap-4 rounded-lg border p-6"
+				>
 					{#if !isBindMountEditing && editingBindMountId !== mount.id}
 						<div class="absolute right-6 top-6">
 							<DropdownMenu.Root>
@@ -261,7 +264,8 @@
 									</DropdownMenu.Item>
 								</DropdownMenu.Content>
 							</DropdownMenu.Root>
-						</div>{/if}
+						</div>
+					{/if}
 					{#if isBindMountEditing && editingBindMountId === mount.id}
 						<div class="ml-10 flex flex-col gap-4 overflow-x-auto text-nowrap text-sm">
 							<p class="text-neutral-400">Source Path</p>
@@ -300,12 +304,21 @@
 						</div>
 					{:else}
 						{#if mount.sourcePath}
-							<div class="ml-10 flex flex-col gap-4 overflow-x-auto text-nowrap text-sm">
+							<div class="ml-10 flex flex-col gap-4 overflow-x-auto text-nowrap text-sm max-h-[35vh]">
 								<p class="text-neutral-400">Source Path</p>
-								<div class="h-fit min-h-14 rounded-lg border p-5">{mount.sourcePath}</div>
+								<div
+									class="scrollbar scrollbar-track-accent scrollbar-thumb-[#33323e] h-fit min-h-14 overflow-auto rounded-lg border p-5"
+								>
+									<DirectoryTree
+										{projectId}
+										{serviceId}
+										mountId={mount.id}
+										path="/"
+										name={mount.sourcePath}
+									/>
+								</div>
 							</div>
 						{/if}
-
 						{#if mount.destinationPath}
 							<div class="overflow-x-autotext-nowrap ml-10 flex flex-col gap-4 text-sm">
 								<p class="text-neutral-400">Destination Path</p>

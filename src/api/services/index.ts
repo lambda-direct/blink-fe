@@ -25,7 +25,9 @@ const API = {
 	BIND_MOUNTS: (instanceId: string, projectId: string, serviceId: string) =>
 		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/bindMounts`,
 	BIND_MOUNT: (instanceId: string, projectId: string, serviceId: string, bindMountId: string) =>
-		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/bindMounts/${bindMountId}`
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/bindMounts/${bindMountId}`,
+	BIND_MOUNT_LS: (instanceId: string, projectId: string, serviceId: string, bindMountId: string) =>
+		`instances/${instanceId}/projects/${projectId}/services/${serviceId}/bindMounts/${bindMountId}/ls`
 };
 
 export interface Service {
@@ -73,6 +75,25 @@ export interface BindMount {
 	sourcePath: string;
 	destinationPath: string;
 	createdAt: number;
+}
+
+interface GetBindMountEntriesQueryParameters {
+	path?: string;
+}
+
+export interface GetBindMountEntriesResponse {
+	entries: {
+		name: string;
+		size: number;
+		type:
+			| 'BLOCK_DEVICE'
+			| 'CHARACTER_DEVICE'
+			| 'DIRECTORY'
+			| 'FIFO'
+			| 'FILE'
+			| 'SOCKET'
+			| 'SYMBOLIC_LINK';
+	}[];
 }
 
 export interface CreateBindMountRequestBody {
@@ -291,6 +312,21 @@ function getBindMount(
 	);
 }
 
+function getBindMountEntries(
+	instanceId: string,
+	projectId: string,
+	serviceId: string,
+	bindMountId: string,
+	queryParams?: GetBindMountEntriesQueryParameters
+) {
+	return axiosCfg.get<GetBindMountEntriesResponse>(
+		API.BIND_MOUNT_LS(instanceId, projectId, serviceId, bindMountId),
+		{
+			params: queryParams
+		}
+	);
+}
+
 function createBindMount(
 	instanceId: string,
 	projectId: string,
@@ -348,6 +384,7 @@ export {
 	deletePortMapping,
 	getBindMounts,
 	getBindMount,
+	getBindMountEntries,
 	createBindMount,
 	updateBindMount,
 	deleteBindMount
